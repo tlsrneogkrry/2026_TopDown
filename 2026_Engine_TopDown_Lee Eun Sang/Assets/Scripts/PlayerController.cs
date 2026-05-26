@@ -1,5 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Tilemaps;
+using UnityEngine.SceneManagement;
 
 public class PlayerController : MonoBehaviour
 {
@@ -16,6 +18,8 @@ public class PlayerController : MonoBehaviour
     private Sprite[] currentSprites;
     private int frameIndex = 0;
     private float timer = 0f;
+
+    
 
     private void Awake()
     {
@@ -78,10 +82,12 @@ public class PlayerController : MonoBehaviour
             {
                 if (input.x > 0)
                 {
+                    sr.flipX = false;
                     ChangeSprites(spriteRight);
                 }
                 else
                 {
+                    sr.flipX = true;
                     ChangeSprites(spriteLeft);
                 }
             }
@@ -98,5 +104,13 @@ public class PlayerController : MonoBehaviour
             }
         }
 
+    }
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.CompareTag("Enemy"))
+        {
+            SceneManager.LoadScene("GameOver");
+        }
     }
 }
