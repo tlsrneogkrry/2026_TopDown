@@ -19,7 +19,7 @@ public class PlayerController : MonoBehaviour
     private int frameIndex = 0;
     private float timer = 0f;
 
-    
+
 
     private void Awake()
     {
@@ -108,9 +108,10 @@ public class PlayerController : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.CompareTag("Enemy"))
+        // 적 또는 위험 오브젝트와의 충돌 감지
+        if (collision.CompareTag("Enemy") || collision.CompareTag("Hazard"))
         {
-            SceneManager.LoadScene("GameOver");
+            GameDateManager.instance.PlayerDead();
         }
     }
 }

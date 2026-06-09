@@ -40,10 +40,10 @@ public class GameDateManager : MonoBehaviour
 
     public PlayerData LoadData()
     {
-        string filpath = Application.persistentDataPath + "/player_data.json";
-        if (System.IO.File.Exists(filpath))
+        string filepath = Application.persistentDataPath + "/player_data.json";
+        if (System.IO.File.Exists(filepath))
         {
-            string json = System.IO.File.ReadAllText(filpath);
+            string json = System.IO.File.ReadAllText(filepath);
             PlayerData playerData = JsonUtility.FromJson<PlayerData>(json);
             Debug.Log("게임 데이터 로드됨: " + json);
             return playerData;
@@ -80,7 +80,6 @@ public class GameDateManager : MonoBehaviour
 
             SaveData(playerData);
         }
-        ;
         SceneManager.LoadScene("GameOver");
     }
 }

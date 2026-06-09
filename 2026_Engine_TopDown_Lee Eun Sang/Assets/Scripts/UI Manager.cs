@@ -3,6 +3,11 @@ using UnityEngine.SceneManagement;
 
 public class UIManager : MonoBehaviour
 {
+    public void GameSave()
+    {
+        GameDateManager.instance.SaveData(GameDateManager.instance.playerData);
+    }
+
     public void GameStart()
     {
         SceneManager.LoadScene("Level_1");
