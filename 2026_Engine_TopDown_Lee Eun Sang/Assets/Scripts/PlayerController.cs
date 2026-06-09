@@ -18,6 +18,7 @@ public class PlayerController : MonoBehaviour
     private Sprite[] currentSprites;
     private int frameIndex = 0;
     private float timer = 0f;
+    private PlayerHealth playerHealth;
 
 
 
@@ -25,6 +26,7 @@ public class PlayerController : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
         sr = GetComponent<SpriteRenderer>();
+        playerHealth = GetComponent<PlayerHealth>();
 
         currentSprites = spriteDown;
         sr.sprite = currentSprites[0];
@@ -103,15 +105,18 @@ public class PlayerController : MonoBehaviour
                 }
             }
         }
-
     }
 
-    private void OnTriggerEnter2D(Collider2D collision)
+    private void OnTriggerStay2D(Collider2D collision)
     {
-        // 적 또는 위험 오브젝트와의 충돌 감지
-        if (collision.CompareTag("Enemy") || collision.CompareTag("Hazard"))
+        // 적과의 충돌 감지 (매 프레임 체크)
+        if (collision.CompareTag("Enemy"))
         {
-            GameDateManager.instance.PlayerDead();
+            // 무적 상태가 아니면 데미지 받음
+            if (playerHealth != null && !playerHealth.IsInvincible())
+            {
+                playerHealth.TakeDamage(10);
+            }
         }
     }
 }
