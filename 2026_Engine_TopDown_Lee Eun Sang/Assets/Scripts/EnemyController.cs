@@ -124,4 +124,11 @@ public class EnemyController : MonoBehaviour
             sr.sprite = currentSprites[frameIndex];
         }
     }
+
+    public void TakeDamage(int damage)
+    {
+        // TODO: 적의 체력 감소 및 사망 처리 로직 구현
+        // 예시: health -= damage;
+        // if (health <= 0) { Die(); }
+    }
 }
