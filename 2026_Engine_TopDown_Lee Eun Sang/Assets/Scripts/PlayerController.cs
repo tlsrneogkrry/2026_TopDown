@@ -38,6 +38,7 @@ public class PlayerController : MonoBehaviour
         {
             frameIndex = 0;
             sr.sprite = currentSprites[frameIndex];
+            UpdateSortingOrder();
             return;
         }
 
@@ -54,6 +55,8 @@ public class PlayerController : MonoBehaviour
             }
             sr.sprite = currentSprites[frameIndex];
         }
+
+        UpdateSortingOrder();
     }
 
     private void FixedUpdate()
@@ -105,6 +108,13 @@ public class PlayerController : MonoBehaviour
                 }
             }
         }
+    }
+
+    private void UpdateSortingOrder()
+    {
+        // Y 좌표의 음수값을 Sorting Order로 설정
+        // Y가 높을수록 앞에, Y가 낮을수록 뒤에 렌더링됨
+        sr.sortingOrder = Mathf.RoundToInt(-transform.position.y * 100f);
     }
 
     private void OnTriggerStay2D(Collider2D collision)

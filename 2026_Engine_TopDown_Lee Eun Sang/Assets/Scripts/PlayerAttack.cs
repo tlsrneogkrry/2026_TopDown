@@ -3,195 +3,161 @@ using System.Collections;
 
 public class PlayerAttack : MonoBehaviour
 {
-    [Header("공격 설정")]
+    [Header("공격 기본 설정 (새 판 시작 시 이 값으로 초기화됨)")]
     public float attackRange = 1.5f;
-    public float attackCooldown = 0.5f;
-    public int attackDamage = 10;
-    
+    public float attackCooldown = 0.5f; // 죽고 다시 시작하면 0.5초로 초기화[cite: 3]
+    public int attackDamage = 10;        // 죽고 다시 시작하면 10으로 초기화[cite: 3]
+    public float autoAttackDetectionRange = 2f;
+
     [Header("공격 이펙트")]
     public float attackDuration = 0.4f;
-    public Color slashColor = new Color(1f, 1f, 1f, 0.8f); // 흰색
-    public int trailSegments = 20; // 잔상 개수
-    
+    public Color slashColor = new Color(1f, 1f, 1f, 0.8f);
+
     private float lastAttackTime = 0f;
-    private PlayerController playerController;
-    private GameObject slashEffectObject;
-    private TrailRenderer slashTrail;
+    private PlayerController playerController; //[cite: 3]
+    private GameObject slashEffectObject;   //[cite: 3]
+    private LineRenderer lineRenderer; //[cite: 3]
 
     private void Start()
     {
-        playerController = GetComponent<PlayerController>();
-        CreateSlashEffect();
+        playerController = GetComponent<PlayerController>(); //[cite: 3]
+        CreateSlashEffect(); //[cite: 3]
+
+        // ★ [기존 영구 강화 자동 주입 로직 제거]
+        // 이제 씬이 시작될 때 세이브 파일의 영구 수치를 강제로 더하지 않습니다.
+        // 즉, 플레이어가 죽고 재시작(씬 재로드)되면 위의 기본값(10 데미지, 0.5초 쿨타임)으로 완벽하게 초기화됩니다.
     }
 
-    private void CreateSlashEffect()
+    private void CreateSlashEffect() //[cite: 3]
     {
-        // 칼 휘두르는 이펙트 GameObject 생성 (캐릭터의 자식으로 설정)
-        slashEffectObject = new GameObject("SlashEffect");
-        slashEffectObject.transform.SetParent(transform); // 캐릭터를 부모로 설정
-        slashEffectObject.transform.localPosition = Vector3.zero;
-        
-        // TrailRenderer 추가 (잔상 효과)
-        slashTrail = slashEffectObject.AddComponent<TrailRenderer>();
-        slashTrail.time = attackDuration; // 잔상 유지 시간
-        slashTrail.startWidth = 0.3f;
-        slashTrail.endWidth = 0.05f;
-        slashTrail.material = new Material(Shader.Find("Sprites/Default"));
-        slashTrail.startColor = slashColor;
-        slashTrail.endColor = new Color(1f, 1f, 1f, 0f);
-        slashTrail.sortingLayerName = "Default";
-        
-        // LineRenderer 추가 (칼날 표시)
-        LineRenderer lineRenderer = slashEffectObject.AddComponent<LineRenderer>();
-        lineRenderer.positionCount = 2;
-        lineRenderer.startWidth = 0.15f;
-        lineRenderer.endWidth = 0.05f;
-        lineRenderer.material = new Material(Shader.Find("Sprites/Default"));
-        lineRenderer.startColor = new Color(1f, 1f, 1f, 0.9f);
-        lineRenderer.endColor = new Color(1f, 1f, 1f, 0.5f);
-        lineRenderer.sortingLayerName = "Default";
-        
-        // 처음에는 비활성화
-        slashEffectObject.SetActive(false);
+        slashEffectObject = new GameObject("SlashEffect"); //[cite: 3]
+        slashEffectObject.transform.SetParent(null); //[cite: 3]
+        slashEffectObject.transform.position = Vector3.zero; //[cite: 3]
+
+        lineRenderer = slashEffectObject.AddComponent<LineRenderer>(); //[cite: 3]
+        lineRenderer.positionCount = 64; //[cite: 3]
+        lineRenderer.startWidth = 0.1f; //[cite: 3]
+        lineRenderer.endWidth = 0.1f; //[cite: 3]
+        lineRenderer.material = new Material(Shader.Find("Sprites/Default")); //[cite: 3]
+        lineRenderer.startColor = slashColor; //[cite: 3]
+        lineRenderer.endColor = slashColor; //[cite: 3]
+        lineRenderer.sortingLayerName = "Default"; //[cite: 3]
+        lineRenderer.loop = true; //[cite: 3]
+
+        slashEffectObject.SetActive(false); //[cite: 3]
     }
 
-    private void Update()
+    private void Update() //[cite: 3]
     {
-        // Update에서는 아무것도 하지 않음
+        CheckAndAutoAttack(); //[cite: 3]
     }
 
-    private void LateUpdate()
+    private void CheckAndAutoAttack() //[cite: 3]
     {
-        // LateUpdate에서 Input System 체크
-        UnityEngine.InputSystem.Mouse mouse = UnityEngine.InputSystem.Mouse.current;
-        if (mouse != null && mouse.leftButton.wasPressedThisFrame)
+        if (Time.time - lastAttackTime < attackCooldown) //[cite: 3]
         {
-            Attack();
-        }
-    }
-
-    private void Attack()
-    {
-        // 공격 쿨타임 체크
-        if (Time.time - lastAttackTime < attackCooldown)
-        {
-            return;
+            return; //[cite: 3]
         }
 
-        lastAttackTime = Time.time;
+        Collider2D[] nearbyColliders = Physics2D.OverlapCircleAll(transform.position, autoAttackDetectionRange); //[cite: 3]
 
-        // 플레이어가 바라보는 방향 가져오기
-        Vector2 attackDirection = GetFacingDirection();
-        
-        // 범위 내의 모든 콜라이더 감지
-        Collider2D[] hitColliders = Physics2D.OverlapCircleAll(transform.position, attackRange);
-
-        foreach (Collider2D collider in hitColliders)
+        bool hasEnemyNearby = false; //[cite: 3]
+        foreach (Collider2D collider in nearbyColliders) //[cite: 3]
         {
-            // 자신은 제외
-            if (collider.gameObject == gameObject)
+            if (collider.CompareTag("Enemy")) //[cite: 3]
             {
-                continue;
+                hasEnemyNearby = true; //[cite: 3]
+                break; //[cite: 3]
+            }
+        }
+
+        if (hasEnemyNearby) //[cite: 3]
+        {
+            PerformAttack(); //[cite: 3]
+        }
+    }
+
+    private void PerformAttack() //[cite: 3]
+    {
+        lastAttackTime = Time.time; //[cite: 3]
+
+        Collider2D[] hitColliders = Physics2D.OverlapCircleAll(transform.position, attackRange); //[cite: 3]
+
+        foreach (Collider2D collider in hitColliders) //[cite: 3]
+        {
+            if (collider.gameObject == gameObject) //[cite: 3]
+            {
+                continue; //[cite: 3]
             }
 
-            // 적 태그 확인
-            if (collider.CompareTag("Enemy"))
+            if (collider.CompareTag("Enemy")) //[cite: 3]
             {
-                Debug.Log("적 히트: " + collider.gameObject.name);
-                
-                // 적에게 데미지 주기
-                EnemyHealth enemyHealth = collider.GetComponent<EnemyHealth>();
-                if (enemyHealth != null)
+                Debug.Log("적 히트: " + collider.gameObject.name); //[cite: 3]
+
+                EnemyHealth enemyHealth = collider.GetComponent<EnemyHealth>(); //[cite: 3]
+                if (enemyHealth != null) //[cite: 3]
                 {
-                    enemyHealth.TakeDamage(attackDamage);
+                    // 레벨업 카드로 강화된 현재 판의 attackDamage가 실시간으로 들어갑니다.
+                    enemyHealth.TakeDamage(attackDamage); //[cite: 3]
                 }
             }
         }
 
-        // 칼 휘두르는 이펙트 표시
-        StartCoroutine(ShowSlashEffect(attackDirection));
-        
-        Debug.Log("공격! 방향: " + attackDirection);
+        StartCoroutine(ShowOmnidirectionalSlashEffect()); //[cite: 3]
     }
 
-    private IEnumerator ShowSlashEffect(Vector2 direction)
+    private IEnumerator ShowOmnidirectionalSlashEffect() //[cite: 3]
     {
-        if (slashEffectObject == null)
-            yield break;
+        if (slashEffectObject == null || lineRenderer == null) //[cite: 3]
+            yield break; //[cite: 3]
 
-        slashEffectObject.SetActive(true);
+        slashEffectObject.SetActive(true); //[cite: 3]
+        Vector3 playerPos = transform.position; //[cite: 3]
+        slashEffectObject.transform.position = playerPos; //[cite: 3]
 
-        // 방향에 따른 기본 각도 계산
-        float baseAngle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-        
-        // 애니메이션 진행도
-        float elapsedTime = 0f;
-        LineRenderer lineRenderer = slashEffectObject.GetComponent<LineRenderer>();
-        
-        while (elapsedTime < attackDuration)
+        float elapsedTime = 0f; //[cite: 3]
+
+        while (elapsedTime < attackDuration) //[cite: 3]
         {
-            elapsedTime += Time.deltaTime;
-            float progress = elapsedTime / attackDuration; // 0 ~ 1
+            elapsedTime += Time.deltaTime; //[cite: 3]
+            float progress = elapsedTime / attackDuration; //[cite: 3]
 
-            // 왼쪽(-45도)에서 오른쪽(+45도)으로 휘두르는 각도
-            float slashStartAngle = baseAngle - 45f;
-            float slashEndAngle = baseAngle + 45f;
-            float currentAngle = Mathf.Lerp(slashStartAngle, slashEndAngle, progress);
+            float currentRadius = Mathf.Lerp(0.2f, attackRange, progress); //[cite: 3]
 
-            // 칼날이 회전하면서 움직임
-            float angleRad = currentAngle * Mathf.Deg2Rad;
-            Vector3 slashDirection = new Vector3(Mathf.Cos(angleRad), Mathf.Sin(angleRad), 0);
-            
-            // 칼날 시작점과 끝점 (캐릭터 위치 기준)
-            Vector3 playerPos = transform.position;
-            Vector3 startPos = playerPos + slashDirection * 0.3f;
-            Vector3 endPos = playerPos + slashDirection * attackRange;
+            int lineCount = 64; //[cite: 3]
+            for (int i = 0; i < lineCount; i++) //[cite: 3]
+            {
+                float angle = (i / (float)lineCount) * 360f * Mathf.Deg2Rad; //[cite: 3]
+                float x = Mathf.Cos(angle) * currentRadius; //[cite: 3]
+                float y = Mathf.Sin(angle) * currentRadius; //[cite: 3]
+                lineRenderer.SetPosition(i, playerPos + new Vector3(x, y, 0)); //[cite: 3]
+            }
 
-            // LineRenderer 위치 업데이트 (월드 좌표)
-            lineRenderer.SetPosition(0, startPos);
-            lineRenderer.SetPosition(1, endPos);
+            float alpha = 1f - (progress * progress); //[cite: 3]
+            Color color = new Color(slashColor.r, slashColor.g, slashColor.b, alpha * slashColor.a); //[cite: 3]
 
-            // 진행도에 따라 투명도 조정
-            float alpha = 1f - (progress * progress); // 빠르게 투명해짐
-            Color startColor = new Color(1f, 1f, 1f, alpha * 0.9f);
-            Color endColor = new Color(1f, 1f, 1f, alpha * 0.3f);
-            
-            lineRenderer.startColor = startColor;
-            lineRenderer.endColor = endColor;
+            lineRenderer.startColor = color; //[cite: 3]
+            lineRenderer.endColor = color; //[cite: 3]
 
-            yield return null;
+            yield return null; //[cite: 3]
         }
 
-        slashEffectObject.SetActive(false);
+        slashEffectObject.SetActive(false); //[cite: 3]
     }
 
-    private Vector2 GetFacingDirection()
+    private void OnDrawGizmosSelected() //[cite: 3]
     {
-        UnityEngine.InputSystem.Mouse mouse = UnityEngine.InputSystem.Mouse.current;
-        if (mouse == null || Camera.main == null)
+        Gizmos.color = Color.red; //[cite: 3]
+        Gizmos.DrawWireSphere(transform.position, attackRange); //[cite: 3]
+        Gizmos.color = Color.yellow; //[cite: 3]
+        Gizmos.DrawWireSphere(transform.position, autoAttackDetectionRange); //[cite: 3]
+    }
+
+    private void OnDestroy() //[cite: 3]
+    {
+        if (slashEffectObject != null) //[cite: 3]
         {
-            return Vector2.down;
-        }
-
-        Vector2 mousePos = mouse.position.ReadValue();
-        Vector3 worldMousePos = Camera.main.ScreenToWorldPoint(mousePos);
-        Vector2 directionToMouse = (new Vector2(worldMousePos.x, worldMousePos.y) - (Vector2)transform.position).normalized;
-        
-        return directionToMouse.magnitude > 0 ? directionToMouse : Vector2.down;
-    }
-
-    // 공격 범위 시각화 (에디터에서만 표시)
-    private void OnDrawGizmosSelected()
-    {
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, attackRange);
-    }
-
-    private void OnDestroy()
-    {
-        if (slashEffectObject != null)
-        {
-            Destroy(slashEffectObject);
+            Destroy(slashEffectObject); //[cite: 3]
         }
     }
 }
