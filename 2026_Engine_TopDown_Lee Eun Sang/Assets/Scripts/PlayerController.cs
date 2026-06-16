@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Tilemaps;
 using UnityEngine.SceneManagement;
+using System.Linq;
 
 public class PlayerController : MonoBehaviour
 {
@@ -10,30 +11,37 @@ public class PlayerController : MonoBehaviour
     public Sprite[] spriteDown;
     public Sprite[] spriteLeft;
     public Sprite[] spriteRight;
+    
     public float frameTime = 0.15f;
+    
     private Rigidbody2D rb;
     private SpriteRenderer sr;
     private Vector2 input;
     private Vector2 velocity;
     private Sprite[] currentSprites;
+    private Sprite[] currentMovementSprites;
     private int frameIndex = 0;
     private float timer = 0f;
     private PlayerHealth playerHealth;
-
-
+    
+    private Vector2 lastDirection = Vector2.down;
+    private Camera mainCamera;
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
         sr = GetComponent<SpriteRenderer>();
         playerHealth = GetComponent<PlayerHealth>();
+        mainCamera = Camera.main;
 
         currentSprites = spriteDown;
+        currentMovementSprites = spriteDown;
         sr.sprite = currentSprites[0];
     }
 
     private void Update()
     {
+        // ì´ë™ ì²˜ë¦¬
         if (input.sqrMagnitude <= 0.01f)
         {
             frameIndex = 0;
@@ -71,6 +79,7 @@ public class PlayerController : MonoBehaviour
             return;
         }
         currentSprites = newSprites;
+        currentMovementSprites = newSprites;
         frameIndex = 0;
         timer = 0f;
         sr.sprite = currentSprites[frameIndex];
@@ -87,11 +96,13 @@ public class PlayerController : MonoBehaviour
             {
                 if (input.x > 0)
                 {
+                    lastDirection = Vector2.right;
                     sr.flipX = false;
                     ChangeSprites(spriteRight);
                 }
                 else
                 {
+                    lastDirection = Vector2.left;
                     sr.flipX = true;
                     ChangeSprites(spriteLeft);
                 }
@@ -100,10 +111,12 @@ public class PlayerController : MonoBehaviour
             {
                 if (input.y > 0)
                 {
+                    lastDirection = Vector2.up;
                     ChangeSprites(spriteUp);
                 }
                 else
                 {
+                    lastDirection = Vector2.down;
                     ChangeSprites(spriteDown);
                 }
             }
@@ -119,10 +132,10 @@ public class PlayerController : MonoBehaviour
 
     private void OnTriggerStay2D(Collider2D collision)
     {
-        // Àû°úÀÇ Ãæµ¹ °¨Áö (¸Å ÇÁ·¹ÀÓ Ã¼Å©)
+        // ì ê³¼ì˜ ì¶©ëŒ ê°ì§€ (ë§¤ í”„ë ˆì„ ì²´í¬)
         if (collision.CompareTag("Enemy"))
         {
-            // ¹«Àû »óÅÂ°¡ ¾Æ´Ï¸é µ¥¹ÌÁö ¹ŞÀ½
+            // ë¬´ì  ìƒíƒœê°€ ì•„ë‹ˆë©´ ë°ë¯¸ì§€ ë°›ìŒ
             if (playerHealth != null && !playerHealth.IsInvincible())
             {
                 playerHealth.TakeDamage(10);

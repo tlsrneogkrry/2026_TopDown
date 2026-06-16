@@ -170,3 +170,10 @@ public class EnemyController : MonoBehaviour
         Destroy(gameObject);
     }
 }
+    public void TakeDamage(int damage)
+    {
+        // TODO: ���� ü�� ���� �� ��� ó�� ���� ����
+        // ����: health -= damage;
+        // if (health <= 0) { Die(); }
+    }
+}
