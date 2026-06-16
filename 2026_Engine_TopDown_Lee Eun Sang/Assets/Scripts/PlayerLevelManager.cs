@@ -4,36 +4,36 @@ using UnityEngine;
 
 public class PlayerLevelManager : MonoBehaviour
 {
-    [Header("레벨 및 경험치")]
+    [Header("플레이어 레벨 경험치")]
     public int currentLevel = 1;
     public int currentExp = 0;
-    public int maxExp = 5; // 레벨 1일 때 요구 경험치
+    public int maxExp = 5; // 레벨 1당 필요 경험치
 
-    [Header("자석 흡입 범위 (반지름)")]
+    [Header("자동 수집 범위 (매그넷)")]
     public float magnetRadius = 3f;
 
     void Update()
     {
-        // 자석 기능: 주변의 경험치 보석 감지
-        // 플레이어 위치를 중심으로 magnetRadius 크기의 원을 그려 충돌체 검사
+        // 자동 수집: 주변의 경험치 젬 자동 수집
+        // 플레이어 위치의 중심에서 magnetRadius 크기의 원 그려 콜라이더 검색
         Collider2D[] hitGems = Physics2D.OverlapCircleAll(transform.position, magnetRadius);
         foreach (Collider2D hit in hitGems)
         {
             ExpGem gem = hit.GetComponent<ExpGem>();
             if (gem != null)
             {
-                gem.StartFly(transform); // 보석을 플레이어 쪽으로 날아가게 만듦
+                gem.StartFly(transform); // 경험치 플레이어 쪽으로 날아가게 만듦
             }
         }
     }
 
-    // 경험치 획득 함수 (보석이 플레이어와 부딪힐 때 실행됨)
+    // 경험치 획득 함수 (경험치 플레이어에게 넘겨줄 때 호출)
     public void GetExp(int amount)
     {
         currentExp += amount;
         Debug.Log($"경험치 획득! 현재 경험치: {currentExp} / {maxExp}");
 
-        // 경험치가 가득 차면 레벨업
+        // 경험치가 최대 경험치 이상일 때
         while (currentExp >= maxExp)
         {
             LevelUp();
@@ -42,28 +42,32 @@ public class PlayerLevelManager : MonoBehaviour
 
     private void LevelUp()
     {
-        currentExp -= maxExp; // 남은 경험치 이월
+        currentExp -= maxExp; // 사용된 경험치 제외
         currentLevel++;
 
-        // 뱀서류 특성: 레벨이 오를수록 요구 경험치량이 체증됨 (예: 전 레벨의 1.2배 + 5)
+        // 뱀서류 특성: 레벨이 올라갈수록 필요 경험치도 점점 늘어남 (예: 각 레벨마다 1.2배 + 5)
         maxExp = Mathf.RoundToInt(maxExp * 1.2f) + 5;
 
-        Debug.LogWarning($"★ 레벨 업! 현재 레벨: {currentLevel} ★");
+        Debug.LogWarning($"레벨 업! 새로운 레벨: {currentLevel} 입니다");
 
-        // TODO: 여기서 게임을 일시정지하고 레벨업 선택지 UI 창을 띄워야 합니다.
+        // 레벨업 UI 표시
         TriggerLevelUpUI();
     }
 
     private void TriggerLevelUpUI()
     {
-        // 1. 게임을 일시정지 시킵니다. (시간 배율을 0으로)
-        Time.timeScale = 0f;
-
-        // 2. 프리팹이나 씬에 만들어둔 레벨업 UI 창을 활성화하는 코드가 들어갈 자리입니다.
-        // 예: LevelUpUIManager.instance.ShowSkillSelection();
+        // LevelUpUIManager에서 UI 표시
+        if (LevelUpUIManager.instance != null)
+        {
+            LevelUpUIManager.instance.ShowLevelUpUI();
+        }
+        else
+        {
+            Debug.LogError("LevelUpUIManager 싱글톤을 찾을 수 없습니다!");
+        }
     }
 
-    // 에디터 뷰에서 플레이어 주변 자석 범위를 시각적으로 확인하기 위한 함수
+    // 디버그: 플레이어 주변의 플레이어 자동 수집 범위를 에디터에서 확인하기 위한 함수
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.yellow;

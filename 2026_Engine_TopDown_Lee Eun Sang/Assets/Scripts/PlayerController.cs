@@ -41,7 +41,7 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
-        // 이동 처리
+        // ?�동 처리
         if (input.sqrMagnitude <= 0.01f)
         {
             frameIndex = 0;
@@ -132,10 +132,10 @@ public class PlayerController : MonoBehaviour
 
     private void OnTriggerStay2D(Collider2D collision)
     {
-        // 적과의 충돌 감지 (매 프레임 체크)
+        // ?�과??충돌 감�? (�??�레??체크)
         if (collision.CompareTag("Enemy"))
         {
-            // 무적 상태가 아니면 데미지 받음
+            // 무적 ?�태가 ?�니�??��?지 받음
             if (playerHealth != null && !playerHealth.IsInvincible())
             {
                 playerHealth.TakeDamage(10);

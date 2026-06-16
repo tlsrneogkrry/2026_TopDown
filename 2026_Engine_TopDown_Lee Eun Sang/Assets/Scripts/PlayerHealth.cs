@@ -10,7 +10,7 @@ public class PlayerHealth : MonoBehaviour
     [Header("피해 설정")]
     public int enemyDamage = 10;
     public float invincibilityTime = 0.25f; // 무적 시간
-
+    
     [Header("피격 효과")]
     public float blinkDuration = 0.25f;
     public float blinkInterval = 0.05f;
@@ -44,6 +44,13 @@ public class PlayerHealth : MonoBehaviour
         {
             Die();
         }
+    }
+
+    public void AddMaxHealth(int amount)
+    {
+        maxHealth += amount;
+        currentHealth = maxHealth; // 체력도 함께 회복
+        Debug.Log("최대 체력 증가! 현재 최대 체력: " + maxHealth);
     }
 
     private IEnumerator InvincibilityEffect()

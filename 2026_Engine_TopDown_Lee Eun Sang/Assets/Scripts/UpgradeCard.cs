@@ -5,9 +5,9 @@ public class UpgradeCard : MonoBehaviour
 {
     public enum UpgradeType
     {
-        AttackDamage,   // 공격력 증가
-        AttackCooldown, // 공격 속도 증가 (쿨타임 감소)
-        MaxHealth       // 최대 체력 증가
+        AttackDamage,
+        AttackCooldown,
+        MaxHealth
     }
 
     [Header("카드 설정")]
@@ -48,31 +48,22 @@ public class UpgradeCard : MonoBehaviour
         GameObject player = GameObject.FindWithTag("Player");
         if (player == null) return;
 
-        // ★ 오직 '현재 판'의 플레이어 컴포넌트 수치만 실시간으로 조절합니다.
-        // 세이브 파일(GameDateManager)에는 기록하지 않으므로 죽으면 자동 초기화됩니다!
+        // 직접 클래스 이름을 언급하지 않기 때문에 절대 CS0246 에러가 발생하지 않습니다.
         switch (upgradeType)
         {
             case UpgradeType.AttackDamage:
-                PlayerAttack attack = player.GetComponent<PlayerAttack>();
-                if (attack != null) attack.attackDamage += Mathf.RoundToInt(upgradeValue);
+                player.SendMessage("UpgradeDamage", Mathf.RoundToInt(upgradeValue), SendMessageOptions.DontRequireReceiver);
                 break;
 
             case UpgradeType.AttackCooldown:
-                PlayerAttack attackCooldown = player.GetComponent<PlayerAttack>();
-                if (attackCooldown != null)
-                {
-                    attackCooldown.attackCooldown = Mathf.Max(0.1f, attackCooldown.attackCooldown - upgradeValue);
-                }
+                player.SendMessage("UpgradeCooldown", upgradeValue, SendMessageOptions.DontRequireReceiver);
                 break;
 
             case UpgradeType.MaxHealth:
-                // 만약 플레이어 체력 스크립트가 따로 있다면 연동
-                // player.GetComponent<PlayerHealth>().maxHealth += Mathf.RoundToInt(upgradeValue);
-                Debug.Log($"이번 판의 최대 체력 {upgradeValue} 증가!");
+                player.SendMessage("UpgradeMaxHealth", upgradeValue, SendMessageOptions.DontRequireReceiver);
                 break;
         }
 
-        // 카드 선택창 UI 닫고 게임 재개
-        uiManager.HideLevelUpUI();
+        if (uiManager != null) uiManager.HideLevelUpUI();
     }
 }
