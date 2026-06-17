@@ -5,12 +5,24 @@ public class UIManager : MonoBehaviour
 {
     public void GameSave()
     {
-        GameDateManager.instance.SaveData(GameDateManager.instance.playerData);
+        // ★ [오류 수정 완료] GameDateManager.instance 대신 표준 GameDataManager.Instance를 사용하여 저장 처리를 지시합니다.
+        if (GameDataManager.Instance != null)
+        {
+            GameDataManager.Instance.SaveGameData();
+        }
     }
 
     public void GameStart()
     {
-        SceneManager.LoadScene("Level_1");
+        // 게임 시작 시 데이터 매니저를 거쳐 로드 후 시작하도록 유도하거나 즉시 이동 처리
+        if (GameDataManager.Instance != null)
+        {
+            GameDataManager.Instance.GameStart();
+        }
+        else
+        {
+            SceneManager.LoadScene("Level_1");
+        }
     }
 
     public void GameQuit()

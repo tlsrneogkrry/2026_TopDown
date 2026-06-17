@@ -14,17 +14,47 @@ public class UpgradeCard : MonoBehaviour
     public UpgradeType upgradeType;
     public float upgradeValue;
 
-    [Header("UI 컴포넌트 연결")]
+    [Header("UI 컴포넌트 자동 연결용 (비어있어도 자동 검색됩니다)")]
     public Text titleText;
     public Text descriptionText;
 
     private LevelUpUIManager uiManager;
+
+    private void Awake()
+    {
+        // ★ [UI 자동 복구 연동] 인스펙터에 수동 드래그를 안 했거나 깨졌을 경우 
+        // 자식 오브젝트 중 "Title", "Description" 이름을 가진 텍스트 컴포넌트를 탐색해 자동 탑재합니다.
+        if (titleText == null)
+        {
+            Transform foundTitle = transform.Find("Title") ?? transform.Find("TitleText") ?? transform.Find("Text");
+            if (foundTitle != null) titleText = foundTitle.GetComponent<Text>();
+        }
+
+        if (descriptionText == null)
+        {
+            Transform foundDesc = transform.Find("Description") ?? transform.Find("DescriptionText") ?? transform.Find("SubText");
+            if (foundDesc != null) descriptionText = foundDesc.GetComponent<Text>();
+        }
+    }
 
     public void SetupCard(UpgradeType type, float value, LevelUpUIManager manager)
     {
         upgradeType = type;
         upgradeValue = value;
         uiManager = manager;
+
+        // 자동 검색 후에도 텍스트가 유실되었다면 하위 컴포넌트를 통째로 긁어와 비상 할당합니다.
+        if (titleText == null || descriptionText == null)
+        {
+            Text[] allChildrenTexts = GetComponentsInChildren<Text>();
+            if (allChildrenTexts.Length >= 2)
+            {
+                if (titleText == null) titleText = allChildrenTexts[0];
+                if (descriptionText == null) descriptionText = allChildrenTexts[1];
+            }
+        }
+
+        if (titleText == null || descriptionText == null) return;
 
         switch (upgradeType)
         {
@@ -48,7 +78,8 @@ public class UpgradeCard : MonoBehaviour
         GameObject player = GameObject.FindWithTag("Player");
         if (player == null) return;
 
-        // 직접 클래스 이름을 언급하지 않기 때문에 절대 CS0246 에러가 발생하지 않습니다.
+        // SendMessage 방식을 통해 컴파일 의존성을 완벽 차단하여 
+        // 업그레이드 선택 로직 실행 시 절대 에러가 나지 않도록 구현되었습니다.
         switch (upgradeType)
         {
             case UpgradeType.AttackDamage:

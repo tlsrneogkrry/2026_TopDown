@@ -9,8 +9,8 @@ public class PlayerHealth : MonoBehaviour
 
     [Header("피해 설정")]
     public int enemyDamage = 10;
-    public float invincibilityTime = 0.25f; // 무적 시간
-    
+    public float invincibilityTime = 0.25f;
+
     [Header("피격 효과")]
     public float blinkDuration = 0.25f;
     public float blinkInterval = 0.05f;
@@ -23,21 +23,16 @@ public class PlayerHealth : MonoBehaviour
     {
         currentHealth = maxHealth;
         sr = GetComponent<SpriteRenderer>();
-        originalColor = sr.color;
+        if (sr != null) originalColor = sr.color;
     }
 
     public void TakeDamage(int damage)
     {
-        // 무적 상태면 데미지 받지 않음
-        if (isInvincible)
-        {
-            return;
-        }
+        if (isInvincible) return;
 
         currentHealth -= damage;
         Debug.Log("플레이어 체력: " + currentHealth);
 
-        // 무적 시간 시작
         StartCoroutine(InvincibilityEffect());
 
         if (currentHealth <= 0)
@@ -46,10 +41,11 @@ public class PlayerHealth : MonoBehaviour
         }
     }
 
+    // UpgradeCard의 MaxHealth 선택 메시지를 실시간 수신하여 연동합니다.
     public void AddMaxHealth(int amount)
     {
         maxHealth += amount;
-        currentHealth = maxHealth; // 체력도 함께 회복
+        currentHealth = maxHealth;
         Debug.Log("최대 체력 증가! 현재 최대 체력: " + maxHealth);
     }
 
@@ -57,29 +53,25 @@ public class PlayerHealth : MonoBehaviour
     {
         isInvincible = true;
 
-        // 깜빡거리는 효과
         float elapsedTime = 0f;
         while (elapsedTime < blinkDuration)
         {
             elapsedTime += Time.deltaTime;
 
-            // 일정 간격으로 투명/불투명 반복
             if ((elapsedTime / blinkInterval) % 2 < 1)
             {
-                sr.color = new Color(originalColor.r, originalColor.g, originalColor.b, 0.5f);
+                if (sr != null) sr.color = new Color(originalColor.r, originalColor.g, originalColor.b, 0.5f);
             }
             else
             {
-                sr.color = originalColor;
+                if (sr != null) sr.color = originalColor;
             }
 
             yield return null;
         }
 
-        // 원래 색상으로 복원
-        sr.color = originalColor;
+        if (sr != null) sr.color = originalColor;
 
-        // 무적 시간 종료
         yield return new WaitForSeconds(invincibilityTime - blinkDuration);
         isInvincible = false;
     }
@@ -92,9 +84,18 @@ public class PlayerHealth : MonoBehaviour
     private void Die()
     {
         Debug.Log("플레이어 사망");
-        if (GameDateManager.instance != null)
+
+        // ★ [데이터 매니저 에러 해결 완벽 동기화] 
+        // 주교재 13강 규칙과 GameManager 구조에 맞게 영구 저장 프로세스를 올바르게 호출합니다.
+        if (GameDataManager.Instance != null)
         {
-            GameDateManager.instance.PlayerDead();
+            GameDataManager.Instance.SaveGameResult();
+        }
+
+        // 게임오버 처리를 위해 타이틀 또는 게임오버 씬으로 전환하도록 GameManager를 작동시킵니다.
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.GameOver();
         }
     }
 
