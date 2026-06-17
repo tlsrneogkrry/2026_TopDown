@@ -11,9 +11,9 @@ public class PlayerController : MonoBehaviour
     public Sprite[] spriteDown;
     public Sprite[] spriteLeft;
     public Sprite[] spriteRight;
-    
+
     public float frameTime = 0.15f;
-    
+
     private Rigidbody2D rb;
     private SpriteRenderer sr;
     private Vector2 input;
@@ -23,7 +23,7 @@ public class PlayerController : MonoBehaviour
     private int frameIndex = 0;
     private float timer = 0f;
     private PlayerHealth playerHealth;
-    
+
     private Vector2 lastDirection = Vector2.down;
     private Camera mainCamera;
 
@@ -132,10 +132,10 @@ public class PlayerController : MonoBehaviour
 
     private void OnTriggerStay2D(Collider2D collision)
     {
-        // ?ê³¼??ì¶©ëŒ ê°ì? (ë§??„ë ˆ??ì²´í¬)
+        // Àû(Enemy) ÅÂ±×¸¦ °¡Áø ¿ÀºêÁ§Æ®¿Í Ãæµ¹ °¨Áö (¸Å ÇÁ·¹ÀÓ Ã¼Å©)
         if (collision.CompareTag("Enemy"))
         {
-            // ë¬´ì  ?íƒœê°€ ?„ë‹ˆë©??°ë?ì§€ ë°›ìŒ
+            // ÇÃ·¹ÀÌ¾î Ã¼·Â ÄÄÆ÷³ÍÆ®°¡ Á¸ÀçÇÏ°í, ¹«Àû »óÅÂ°¡ ¾Æ´Ï¶ó¸é ´ë¹ÌÁö ¹ŞÀ½
             if (playerHealth != null && !playerHealth.IsInvincible())
             {
                 playerHealth.TakeDamage(10);
