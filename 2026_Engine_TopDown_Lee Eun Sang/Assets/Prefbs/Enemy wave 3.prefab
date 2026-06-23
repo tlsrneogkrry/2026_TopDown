@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 8096904285827817451}
   - component: {fileID: 7322819875632922427}
   m_Layer: 0
-  m_Name: Enemy
+  m_Name: Enemy wave 3
   m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -85,7 +85,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 3282577858737591953, guid: 3d0078f5ec9c2a74c8d32bb91143cbd1, type: 3}
+  m_Sprite: {fileID: -6052960973524222444, guid: 3d0078f5ec9c2a74c8d32bb91143cbd1, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -107,7 +107,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 96c96d771bebc534ba0357b247a64853, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyHealth
-  maxHp: 30
+  maxHp: 90
+  hitColor: {r: 1, g: 0, b: 0, a: 1}
+  flashDuration: 0.1
   expGemPrefab: {fileID: 6472050846705470714, guid: f4a9d58c45e21a145a37779778e8a6b1, type: 3}
 --- !u!114 &8186876176067609605
 MonoBehaviour:
@@ -122,46 +124,26 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyController
   spriteUp:
-  - {fileID: 3282577858737591953, guid: 3d0078f5ec9c2a74c8d32bb91143cbd1, type: 3}
-  - {fileID: 5185892633025419547, guid: 3d0078f5ec9c2a74c8d32bb91143cbd1, type: 3}
-  - {fileID: -7256058446281164947, guid: 3d0078f5ec9c2a74c8d32bb91143cbd1, type: 3}
-  - {fileID: -7056187101439376393, guid: 3d0078f5ec9c2a74c8d32bb91143cbd1, type: 3}
-  - {fileID: 19742466574912178, guid: 3d0078f5ec9c2a74c8d32bb91143cbd1, type: 3}
-  - {fileID: 6912095727924543620, guid: 3d0078f5ec9c2a74c8d32bb91143cbd1, type: 3}
-  - {fileID: 7664224028100684353, guid: 3d0078f5ec9c2a74c8d32bb91143cbd1, type: 3}
-  - {fileID: -3774093941810560986, guid: 3d0078f5ec9c2a74c8d32bb91143cbd1, type: 3}
+  - {fileID: 7651680440160202265, guid: 3d0078f5ec9c2a74c8d32bb91143cbd1, type: 3}
+  - {fileID: -8151500121098761127, guid: 3d0078f5ec9c2a74c8d32bb91143cbd1, type: 3}
+  - {fileID: -8307390040965355510, guid: 3d0078f5ec9c2a74c8d32bb91143cbd1, type: 3}
+  - {fileID: -3388475590322593712, guid: 3d0078f5ec9c2a74c8d32bb91143cbd1, type: 3}
   spriteDown:
-  - {fileID: 3282577858737591953, guid: 3d0078f5ec9c2a74c8d32bb91143cbd1, type: 3}
-  - {fileID: 5185892633025419547, guid: 3d0078f5ec9c2a74c8d32bb91143cbd1, type: 3}
-  - {fileID: -7256058446281164947, guid: 3d0078f5ec9c2a74c8d32bb91143cbd1, type: 3}
-  - {fileID: -7056187101439376393, guid: 3d0078f5ec9c2a74c8d32bb91143cbd1, type: 3}
-  - {fileID: 19742466574912178, guid: 3d0078f5ec9c2a74c8d32bb91143cbd1, type: 3}
-  - {fileID: 6912095727924543620, guid: 3d0078f5ec9c2a74c8d32bb91143cbd1, type: 3}
-  - {fileID: 7664224028100684353, guid: 3d0078f5ec9c2a74c8d32bb91143cbd1, type: 3}
-  - {fileID: -3774093941810560986, guid: 3d0078f5ec9c2a74c8d32bb91143cbd1, type: 3}
+  - {fileID: 7651680440160202265, guid: 3d0078f5ec9c2a74c8d32bb91143cbd1, type: 3}
+  - {fileID: -8151500121098761127, guid: 3d0078f5ec9c2a74c8d32bb91143cbd1, type: 3}
+  - {fileID: -8307390040965355510, guid: 3d0078f5ec9c2a74c8d32bb91143cbd1, type: 3}
+  - {fileID: -3388475590322593712, guid: 3d0078f5ec9c2a74c8d32bb91143cbd1, type: 3}
   spriteLeft:
-  - {fileID: 3282577858737591953, guid: 3d0078f5ec9c2a74c8d32bb91143cbd1, type: 3}
-  - {fileID: 5185892633025419547, guid: 3d0078f5ec9c2a74c8d32bb91143cbd1, type: 3}
-  - {fileID: -7256058446281164947, guid: 3d0078f5ec9c2a74c8d32bb91143cbd1, type: 3}
-  - {fileID: -7056187101439376393, guid: 3d0078f5ec9c2a74c8d32bb91143cbd1, type: 3}
-  - {fileID: 19742466574912178, guid: 3d0078f5ec9c2a74c8d32bb91143cbd1, type: 3}
-  - {fileID: 6912095727924543620, guid: 3d0078f5ec9c2a74c8d32bb91143cbd1, type: 3}
-  - {fileID: 7664224028100684353, guid: 3d0078f5ec9c2a74c8d32bb91143cbd1, type: 3}
-  - {fileID: -3774093941810560986, guid: 3d0078f5ec9c2a74c8d32bb91143cbd1, type: 3}
+  - {fileID: 7651680440160202265, guid: 3d0078f5ec9c2a74c8d32bb91143cbd1, type: 3}
+  - {fileID: -8151500121098761127, guid: 3d0078f5ec9c2a74c8d32bb91143cbd1, type: 3}
+  - {fileID: -8307390040965355510, guid: 3d0078f5ec9c2a74c8d32bb91143cbd1, type: 3}
+  - {fileID: -3388475590322593712, guid: 3d0078f5ec9c2a74c8d32bb91143cbd1, type: 3}
   spriteRight:
-  - {fileID: 3282577858737591953, guid: 3d0078f5ec9c2a74c8d32bb91143cbd1, type: 3}
-  - {fileID: 5185892633025419547, guid: 3d0078f5ec9c2a74c8d32bb91143cbd1, type: 3}
-  - {fileID: -7256058446281164947, guid: 3d0078f5ec9c2a74c8d32bb91143cbd1, type: 3}
-  - {fileID: -7056187101439376393, guid: 3d0078f5ec9c2a74c8d32bb91143cbd1, type: 3}
-  - {fileID: 19742466574912178, guid: 3d0078f5ec9c2a74c8d32bb91143cbd1, type: 3}
-  - {fileID: 6912095727924543620, guid: 3d0078f5ec9c2a74c8d32bb91143cbd1, type: 3}
-  - {fileID: 7664224028100684353, guid: 3d0078f5ec9c2a74c8d32bb91143cbd1, type: 3}
-  - {fileID: -3774093941810560986, guid: 3d0078f5ec9c2a74c8d32bb91143cbd1, type: 3}
+  - {fileID: -5378792356027598260, guid: 3d0078f5ec9c2a74c8d32bb91143cbd1, type: 3}
   frameTime: 0.15
   moveSpeed: 1.3
   raycastDistance: 0
   traceDistance: 30
-  expGemPrefab: {fileID: 0}
 --- !u!61 &8096904285827817451
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -200,7 +182,7 @@ BoxCollider2D:
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 0.13, y: 0.2}
+    oldSize: {x: 0.17, y: 0.19}
     newSize: {x: 0.13, y: 0.2}
     adaptiveTilingThreshold: 0.5
     drawMode: 0

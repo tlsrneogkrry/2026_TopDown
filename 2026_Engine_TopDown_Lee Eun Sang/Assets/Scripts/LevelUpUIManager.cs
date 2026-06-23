@@ -27,17 +27,30 @@ public class LevelUpUIManager : MonoBehaviour
     {
         if (levelUpPanel == null) return;
 
-        Time.timeScale = 0f; // 일시정지
+        Time.timeScale = 0f; // 게임 일시정지
         levelUpPanel.SetActive(true);
 
+        // 1. 중복 방지용 후보군 리스트 생성
+        List<UpgradeCard.UpgradeType> availableUpgrades = new List<UpgradeCard.UpgradeType>()
+        {
+            UpgradeCard.UpgradeType.AttackDamage,
+            UpgradeCard.UpgradeType.AttackCooldown,
+            UpgradeCard.UpgradeType.HealthRestore
+        };
+
+        // 2. 카드 3개를 순회하며 데이터를 세팅
         for (int i = 0; i < cardComponents.Count; i++)
         {
             if (cardComponents[i] == null) continue;
+            if (availableUpgrades.Count == 0) break;
 
-            UpgradeCard.UpgradeType randomType = (UpgradeCard.UpgradeType)Random.Range(0, 3);
+            // 무작위로 하나 뽑고 리스트에서 제거하여 중복 차단
+            int randomIndex = Random.Range(0, availableUpgrades.Count);
+            UpgradeCard.UpgradeType selectedType = availableUpgrades[randomIndex];
+            availableUpgrades.RemoveAt(randomIndex);
+
             float value = 0f;
-
-            switch (randomType)
+            switch (selectedType)
             {
                 case UpgradeCard.UpgradeType.AttackDamage:
                     value = 5f;
@@ -45,20 +58,22 @@ public class LevelUpUIManager : MonoBehaviour
                 case UpgradeCard.UpgradeType.AttackCooldown:
                     value = 0.05f;
                     break;
-                case UpgradeCard.UpgradeType.MaxHealth:
+                case UpgradeCard.UpgradeType.HealthRestore:
                     value = 20f;
                     break;
             }
 
-            cardComponents[i].SetupCard(randomType, value, this);
+            // ★ 중요: 매개변수 개수를 맞춰서 무조건 3개의 인자를 던집니다.
+            cardComponents[i].SetupCard(selectedType, value, this);
         }
     }
 
+    // 카드가 클릭되었을 때 호출되어 창을 닫고 게임을 재개하는 함수
     public void HideLevelUpUI()
     {
         if (levelUpPanel == null) return;
 
         levelUpPanel.SetActive(false);
-        Time.timeScale = 1f; // 시간 재생
+        Time.timeScale = 1f; // 일시정지 해제 (게임 재개)
     }
 }
