@@ -1,15 +1,15 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using System.Collections;
 
 public class PlayerAttack : MonoBehaviour
 {
-    [Header("°ø°İ ±âº» ¼³Á¤ (»õ °ÔÀÓ ½Ã ÃÊ±âÈ­¿ë)")]
+    [Header("ê³µê²© ê¸°ë³¸ ì„¤ì • (ìƒˆ ê²Œì„ ì‹œ ì´ˆê¸°í™”ìš©)")]
     public float attackRange = 1.5f;
     public float attackCooldown = 0.5f;
     public int attackDamage = 10;
     public float autoAttackDetectionRange = 2f;
 
-    [Header("°ø°İ ÀÌÆåÆ®")]
+    [Header("ê³µê²© ì´í™íŠ¸")]
     public float attackDuration = 0.4f;
     public Color slashColor = new Color(1f, 1f, 1f, 0.8f);
 
@@ -17,17 +17,15 @@ public class PlayerAttack : MonoBehaviour
     private GameObject slashEffectObject;
     private LineRenderer lineRenderer;
 
-    // ¡Ú [¹ö±× ÇØ°á ÇÙ½É] ÆÄµ¿ ÄÚ·çÆ¾ÀÌ Áßº¹ ½ÇÇàµÇ´Â °ÍÀ» ¿øÃµ Â÷´ÜÇÏ´Â ¾ÈÀüÀåÄ¡
     private bool isAttacking = false;
 
-    // ¼º±â»çÀÇ °ËÀ» ¸Ô¾úÀ» ¶§ µ¥¹ÌÁö¸¦ ¿Ã¸®´Â ÇÔ¼ö
+    // ì„±ê¸°ì‚¬ì˜ ê²€ ì—…ê·¸ë ˆì´ë“œ í•¨ìˆ˜
     public void UpgradeDamage(int amount)
     {
-        // 1. ¸ÕÀú ³» ½ºÅ©¸³Æ®ÀÇ µ¥¹ÌÁö¸¦ ¿Ã¸³´Ï´Ù.
         attackDamage += amount;
-        Debug.Log($"[{gameObject.name}] ÇöÀç ÀÎ°ÔÀÓ °ø°İ·Â: {attackDamage}");
+        Debug.Log($"[{gameObject.name}] í˜„ì¬ ì¸ê²Œì„ ê³µê²©ë ¥: {attackDamage}");
 
-        // 2. ¸¸¾à ÁöÆÎÀÌ È¿°ú·Î ½ºÅ©¸³Æ®°¡ ¿©·¯ °³ º¹»çµÇ¾î ÀÖ´Ù¸é, ´Ù¸¥ ¸ğµç PlayerAttackµéÀÇ µ¥¹ÌÁöµµ ¶È°°ÀÌ ¿Ã·ÁÁİ´Ï´Ù!
+        // ì§€íŒ¡ì´ íš¨ê³¼ë¡œ ëŠ˜ì–´ë‚œ ë³µì‚¬ë³¸ ìŠ¤í¬ë¦½íŠ¸ë“¤ì˜ ë°ë¯¸ì§€ë„ ì¼ê´„ ë™ê¸°í™”í•©ë‹ˆë‹¤.
         PlayerAttack[] allAttacks = GetComponents<PlayerAttack>();
         foreach (PlayerAttack attack in allAttacks)
         {
@@ -35,30 +33,27 @@ public class PlayerAttack : MonoBehaviour
         }
     }
 
-    // ¡Ú [¸¶¹ı»çÀÇ ÁöÆÎÀÌ¿ë ÇÔ¼ö Ãß°¡ ¿Ï·á!] »õ °ÔÀÓ ÃÊ±âÈ­¿ë º¯¼ö´Â Àı´ë °ÇµéÁö ¾Ê½À´Ï´Ù.
+    // ë§ˆë²•ì‚¬ì˜ ì§€íŒ¡ì´ ì—…ê·¸ë ˆì´ë“œ í•¨ìˆ˜ (ë…ë¦½ ì»´í¬ë„ŒíŠ¸ ì¶”ê°€ ê¸°ë¯¹)
     public void UpgradeAttackCount(int amount)
     {
         for (int i = 0; i < amount; i++)
         {
-            // ÇÃ·¹ÀÌ¾î ÀÚ½Å(gameObject)¿¡°Ô »õ·Î¿î PlayerAttack ½ºÅ©¸³Æ® ÄÄÆ÷³ÍÆ®¸¦ ÇÏ³ª ´õ Ãß°¡ ÀåÂøÇÕ´Ï´Ù!
             PlayerAttack additionalAttack = gameObject.AddComponent<PlayerAttack>();
 
-            // »õ·Î ÅÂ¾î³­ º¹»çº» ½ºÅ©¸³Æ®¿¡°Ô ÇöÀç±îÁö ¾÷±×·¹ÀÌµåµÈ ´É·ÂÄ¡(µ¥¹ÌÁö, ÄğÅ¸ÀÓ µî)¸¦ ±×´ë·Î µ¿±âÈ­ÇØ Áİ´Ï´Ù.
             additionalAttack.attackDamage = this.attackDamage;
             additionalAttack.attackCooldown = this.attackCooldown;
             additionalAttack.attackRange = this.attackRange;
             additionalAttack.autoAttackDetectionRange = this.autoAttackDetectionRange;
 
-            Debug.LogWarning($"[¾ÆÀÌÅÛ È¿°ú] ÇÃ·¹ÀÌ¾î¿¡°Ô µ¶¸³ÀûÀÎ °ø°İ ½ºÅ©¸³Æ®°¡ Ãß°¡ ÀåÂøµÇ¾ú½À´Ï´Ù! (ÃÑ °ø°İ È½¼ö Ãß°¡)");
+            Debug.LogWarning($"[ì•„ì´í…œ íš¨ê³¼] í”Œë ˆì´ì–´ì—ê²Œ ë…ë¦½ ê³µê²© ìŠ¤í¬ë¦½íŠ¸ê°€ ì¶”ê°€ ì¥ì°©ë˜ì—ˆìŠµë‹ˆë‹¤!");
         }
     }
 
     public void UpgradeCooldown(float amount)
     {
         attackCooldown = Mathf.Max(0.1f, attackCooldown - amount);
-        Debug.Log($"[´É·ÂÄ¡ »ó½Â] ÇöÀç ÀÎ°ÔÀÓ °ø°İ ÄğÅ¸ÀÓ: {attackCooldown}");
+        Debug.Log($"[ëŠ¥ë ¥ì¹˜ ìƒìŠ¹] í˜„ì¬ ì¸ê²Œì„ ê³µê²© ì¿¨íƒ€ì„: {attackCooldown}");
 
-        // ÄğÅ¸ÀÓ °¨¼Òµµ ¸¶Âù°¡Áö·Î ´Ã¾î³­ ¸ğµç ÁöÆÎÀÌ¿¡ µ¿±âÈ­ÇØ Áİ´Ï´Ù.
         PlayerAttack[] allAttacks = GetComponents<PlayerAttack>();
         foreach (PlayerAttack attack in allAttacks)
         {
@@ -68,7 +63,7 @@ public class PlayerAttack : MonoBehaviour
 
     public void UpgradeMaxHealth(float amount)
     {
-        Debug.Log($"[´É·ÂÄ¡ »ó½Â] Ã¼·Â Áõ°¡ ¸Ş½ÃÁö ¼ö½Å: {amount}");
+        Debug.Log($"[ëŠ¥ë ¥ì¹˜ ìƒìŠ¹] ì²´ë ¥ ì¦ê°€ ë©”ì‹œì§€ ìˆ˜ì‹ : {amount}");
     }
 
     private void Start()
@@ -97,7 +92,6 @@ public class PlayerAttack : MonoBehaviour
 
     private void Update()
     {
-        // ¡Ú 1. ÀÌ¹Ì ÆÄµ¿À» ¹ß»ç ÁßÀÌ°Å³ª ÄğÅ¸ÀÓÀÌ Áö³ªÁö ¾Ê¾Ò´Ù¸é Àı´ë ´ÙÀ½ ¿¬»êÀ» ÇÏÁö ¸øÇÏ°Ô ¸·½À´Ï´Ù.
         if (isAttacking) return;
         if (Time.time - lastAttackTime < attackCooldown) return;
 
@@ -125,8 +119,6 @@ public class PlayerAttack : MonoBehaviour
 
     private void PerformAttack()
     {
-        // ¡Ú 2. PerformAttack¿¡ µé¾î¿ÀÀÚ¸¶ÀÚ °¡Àå ¸ÕÀú ¹®À» Àá±Å¼­ 
-        // ´ÙÀ½ ÇÁ·¹ÀÓÀÇ Update°¡ ÀÌ ÇÔ¼ö¸¦ ¶Ç ½ÇÇà½ÃÅ°´Â °ÍÀ» ¿Ïº®È÷ ¹æÁöÇÕ´Ï´Ù.
         isAttacking = true;
         lastAttackTime = Time.time;
 
@@ -146,7 +138,6 @@ public class PlayerAttack : MonoBehaviour
             }
         }
 
-        // ¡Ú 3. ¹®À» Àá±Ù »óÅÂ¿¡¼­ ¾ÈÀüÇÏ°Ô ÄÚ·çÆ¾À» "µü 1¹ø¸¸" ½ÇÇàÇÕ´Ï´Ù.
         StartCoroutine(ShowOmnidirectionalSlashEffect());
     }
 
@@ -187,8 +178,6 @@ public class PlayerAttack : MonoBehaviour
         }
 
         slashEffectObject.SetActive(false);
-
-        // ¡Ú 4. ÆÄµ¿ ¿¬ÃâÀÌ ´«¾Õ¿¡¼­ ¿ÏÀüÈ÷ »ç¶óÁø µÚ¿¡ ¹®À» ¿­¾îÁİ´Ï´Ù.
         isAttacking = false;
     }
 

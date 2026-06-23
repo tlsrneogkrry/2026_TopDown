@@ -1,32 +1,35 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 
 public class ExpGem : MonoBehaviour
 {
-    [Header("°æÇèÄ¡ ¹× ÈíÀÔ ¼³Á¤")]
-    public int expValue = 1;
-    public float moveSpeed = 5f;
+    [Header("ìì„ ë° ê²½í—˜ì¹˜ ì„¤ì •")]
+    private int expAmount = 1; // ì •í™•íˆ 1ë§Œ ë°°ë‹¬í•˜ë„ë¡ ì½”ë“œ ê³ ì •
+    [SerializeField] private float magnetRadius = 1f;
+    [SerializeField] private float moveSpeed = 8f;
 
     private Transform playerTransform;
-    private bool isFlying = false;
+    private bool isAttracted = false;
 
-    private void Awake()
+    private void Start()
     {
-        transform.localScale = new Vector3(0.025f, 0.025f, 1f);
+        GameObject playerObj = GameObject.FindWithTag("Player");
+        if (playerObj != null) playerTransform = playerObj.transform;
     }
 
-    void Update()
+    private void Update()
     {
-        if (isFlying && playerTransform != null)
+        if (playerTransform == null) return;
+
+        if (!isAttracted)
         {
-            transform.position = Vector3.MoveTowards(transform.position, playerTransform.position, moveSpeed * Time.deltaTime);
-            moveSpeed += Time.deltaTime * 7f;
+            float distance = Vector2.Distance(transform.position, playerTransform.position);
+            if (distance <= magnetRadius) isAttracted = true;
         }
-    }
 
-    public void StartFly(Transform target)
-    {
-        playerTransform = target;
-        isFlying = true;
+        if (isAttracted)
+        {
+            transform.position = Vector2.MoveTowards(transform.position, playerTransform.position, moveSpeed * Time.deltaTime);
+        }
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
@@ -36,7 +39,7 @@ public class ExpGem : MonoBehaviour
             PlayerLevelManager levelManager = collision.GetComponent<PlayerLevelManager>();
             if (levelManager != null)
             {
-                levelManager.GetExp(expValue);
+                levelManager.AddExp(expAmount); // 1 ì „ë‹¬
             }
             Destroy(gameObject);
         }

@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemData
   itemName: "\uC131\uAE30\uC0AC\uC758 \uAC80"
   itemDescription: "\uC2E0\uC131\uD55C \uD798\uC744 \uAC00\uC9C4 \uAC80\uC785\uB2C8\uB2E4!
-    (\uACF5\uACA9\uB825 30% \uC5C5)"
+    (\uACF5\uACA9\uB825 50 \uC5C5)"
   itemIcon: {fileID: 6580896328393768807, guid: 3d0078f5ec9c2a74c8d32bb91143cbd1, type: 3}
   playerMessageName: UpgradeDamage
-  value: 3
+  value: 50

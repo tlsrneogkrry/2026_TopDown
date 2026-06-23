@@ -37,7 +37,10 @@ public class EnemyHealth : MonoBehaviour
         {
             hitCoroutine = StartCoroutine(FlashHitColor());
         }
-        if (currentHp <= 0) Die();
+        if (currentHp <= 0)
+        {
+            Die();
+        }
     }
 
     private IEnumerator FlashHitColor()
@@ -51,5 +54,10 @@ public class EnemyHealth : MonoBehaviour
     {
         if (expGemPrefab != null) Instantiate(expGemPrefab, transform.position, Quaternion.identity);
         Destroy(gameObject);
+
+        if (InGameHUDManager.instance != null)
+        {
+            InGameHUDManager.instance.AddKillCount(1);
+        }
     }
 }

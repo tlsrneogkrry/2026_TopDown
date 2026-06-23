@@ -1,79 +1,75 @@
-using System.Collections.Generic;
-using UnityEngine;
+ï»¿using UnityEngine;
 
 public class LevelUpUIManager : MonoBehaviour
 {
     public static LevelUpUIManager instance;
 
-    [Header("UI ÆĞ³Î")]
+    [Header("ë ˆë²¨ì—… UI íŒ¨ë„ ì„¤ì •")]
     public GameObject levelUpPanel;
 
-    [Header("Ä«µå ÄÄÆ÷³ÍÆ® ¸®½ºÆ® (3°³)")]
-    public List<UpgradeCard> cardComponents;
+    [Header("ë ˆë²¨ì—… ì¹´ë“œ ì»´í¬ë„ŒíŠ¸ ë¦¬ìŠ¤íŠ¸")]
+    public UpgradeCard[] cardComponents;
+
+    // â˜… ì¹´ë“œì— í‘œì‹œí•  ì—…ê·¸ë ˆì´ë“œ íƒ€ì…ê³¼ ìˆ˜ì¹˜ë¥¼ ì—¬ê¸°ì„œ ì§€ì •
+    [Header("ê° ì¹´ë“œ ì—…ê·¸ë ˆì´ë“œ ì„¤ì • (cardComponentsì™€ ìˆœì„œ ë§ì¶”ê¸°)")]
+    public UpgradeCard.UpgradeType[] upgradeTypes = new UpgradeCard.UpgradeType[]
+    {
+        UpgradeCard.UpgradeType.AttackDamage,
+        UpgradeCard.UpgradeType.AttackCooldown,
+        UpgradeCard.UpgradeType.HealthRestore
+    };
+    public float[] upgradeValues = new float[] { 10f, 0.1f, 10f };
 
     private void Awake()
     {
-        if (instance == null) instance = this;
+        if (instance == null)
+        {
+            instance = this;
+        }
         else
         {
             Destroy(gameObject);
             return;
         }
-
-        if (levelUpPanel != null) levelUpPanel.SetActive(false);
     }
 
-    public void ShowLevelUpUI()
+    public void OpenLevelUpUI()
     {
         if (levelUpPanel == null) return;
 
-        Time.timeScale = 0f; // °ÔÀÓ ÀÏ½ÃÁ¤Áö
         levelUpPanel.SetActive(true);
+        Time.timeScale = 0f;
 
-        // 1. Áßº¹ ¹æÁö¿ë ÈÄº¸±º ¸®½ºÆ® »ı¼º
-        List<UpgradeCard.UpgradeType> availableUpgrades = new List<UpgradeCard.UpgradeType>()
-        {
-            UpgradeCard.UpgradeType.AttackDamage,
-            UpgradeCard.UpgradeType.AttackCooldown,
-            UpgradeCard.UpgradeType.HealthRestore
-        };
-
-        // 2. Ä«µå 3°³¸¦ ¼øÈ¸ÇÏ¸ç µ¥ÀÌÅÍ¸¦ ¼¼ÆÃ
-        for (int i = 0; i < cardComponents.Count; i++)
+        // â˜… í•µì‹¬ ìˆ˜ì •: ì¹´ë“œê°€ ì—´ë¦´ ë•Œ ì‹¤ì œë¡œ SetupCard()ë¥¼ í˜¸ì¶œí•´ í…ìŠ¤íŠ¸ ì„¸íŒ…
+        for (int i = 0; i < cardComponents.Length; i++)
         {
             if (cardComponents[i] == null) continue;
-            if (availableUpgrades.Count == 0) break;
 
-            // ¹«ÀÛÀ§·Î ÇÏ³ª »Ì°í ¸®½ºÆ®¿¡¼­ Á¦°ÅÇÏ¿© Áßº¹ Â÷´Ü
-            int randomIndex = Random.Range(0, availableUpgrades.Count);
-            UpgradeCard.UpgradeType selectedType = availableUpgrades[randomIndex];
-            availableUpgrades.RemoveAt(randomIndex);
+            UpgradeCard.UpgradeType type = (i < upgradeTypes.Length)
+                ? upgradeTypes[i]
+                : UpgradeCard.UpgradeType.AttackDamage;
 
-            float value = 0f;
-            switch (selectedType)
-            {
-                case UpgradeCard.UpgradeType.AttackDamage:
-                    value = 5f;
-                    break;
-                case UpgradeCard.UpgradeType.AttackCooldown:
-                    value = 0.05f;
-                    break;
-                case UpgradeCard.UpgradeType.HealthRestore:
-                    value = 20f;
-                    break;
-            }
+            float value = (i < upgradeValues.Length) ? upgradeValues[i] : 10f;
 
-            // ¡Ú Áß¿ä: ¸Å°³º¯¼ö °³¼ö¸¦ ¸ÂÃç¼­ ¹«Á¶°Ç 3°³ÀÇ ÀÎÀÚ¸¦ ´øÁı´Ï´Ù.
-            cardComponents[i].SetupCard(selectedType, value, this);
+            cardComponents[i].SetupCard(type, value, this);
+
+            Debug.Log($"[ë ˆë²¨ì—… UI] ì¹´ë“œ {i} ì„¸íŒ… ì™„ë£Œ: {type} / {value}");
         }
+
+        Debug.Log("ğŸ‰ [ë ˆë²¨ì—… UI] ì„ íƒ ì°½ í™œì„±í™” ì™„ë£Œ.");
     }
 
-    // Ä«µå°¡ Å¬¸¯µÇ¾úÀ» ¶§ È£ÃâµÇ¾î Ã¢À» ´İ°í °ÔÀÓÀ» Àç°³ÇÏ´Â ÇÔ¼ö
     public void HideLevelUpUI()
     {
         if (levelUpPanel == null) return;
 
         levelUpPanel.SetActive(false);
-        Time.timeScale = 1f; // ÀÏ½ÃÁ¤Áö ÇØÁ¦ (°ÔÀÓ Àç°³)
+        Time.timeScale = 1f;
+        Debug.Log("[ë ˆë²¨ì—… UI] ì¹´ë“œ ì„ íƒ ì™„ë£Œ! ê²Œì„ì„ ì¬ê°œí•©ë‹ˆë‹¤.");
+    }
+
+    public void CloseLevelUpUI()
+    {
+        HideLevelUpUI();
     }
 }

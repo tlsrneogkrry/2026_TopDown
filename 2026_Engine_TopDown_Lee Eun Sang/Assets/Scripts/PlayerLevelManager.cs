@@ -1,40 +1,34 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+ï»¿using UnityEngine;
 
 public class PlayerLevelManager : MonoBehaviour
 {
-    [Header("ÇÃ·¹ÀÌ¾î ·¹º§ °æÇèÄ¡")]
-    public int currentLevel = 1;
+    public static PlayerLevelManager instance;
+
+    [Header("ë ˆë²¨ ë° ê²½í—˜ì¹˜ ìŠ¤íƒ¯")]
+    public int level = 1;
     public int currentExp = 0;
-    public int maxExp = 5; // ·¹º§ 1´ç ÇÊ¿ä °æÇèÄ¡
+    public int maxExp = 100;
 
-    [Header("ÀÚµ¿ ¼öÁı ¹üÀ§ (¸Å±×³İ)")]
-    public float magnetRadius = 3f;
-
-    void Update()
+    private void Awake()
     {
-        // ÀÚµ¿ ¼öÁı: ÁÖº¯ÀÇ °æÇèÄ¡ Áª ÀÚµ¿ ¼öÁı
-        // ÇÃ·¹ÀÌ¾î À§Ä¡ÀÇ Áß½É¿¡¼­ magnetRadius Å©±âÀÇ ¿ø ±×·Á Äİ¶óÀÌ´õ °Ë»ö
-        Collider2D[] hitGems = Physics2D.OverlapCircleAll(transform.position, magnetRadius);
-        foreach (Collider2D hit in hitGems)
-        {
-            ExpGem gem = hit.GetComponent<ExpGem>();
-            if (gem != null)
-            {
-                gem.StartFly(transform); // °æÇèÄ¡ ÇÃ·¹ÀÌ¾î ÂÊÀ¸·Î ³¯¾Æ°¡°Ô ¸¸µê
-            }
-        }
+        if (instance == null) instance = this;
     }
 
-    // °æÇèÄ¡ È¹µæ ÇÔ¼ö (°æÇèÄ¡ ÇÃ·¹ÀÌ¾î¿¡°Ô ³Ñ°ÜÁÙ ¶§ È£Ãâ)
-    public void GetExp(int amount)
+    // ë³´ì„ì„ ë¨¹ì—ˆì„ ë•Œ ì‹¤í–‰ë˜ëŠ” í•µì‹¬ í•¨ìˆ˜
+    public void AddExp(int amount)
     {
-        currentExp += amount;
-        Debug.Log($"°æÇèÄ¡ È¹µæ! ÇöÀç °æÇèÄ¡: {currentExp} / {maxExp}");
+        // â˜… [10ê°œì”© ì˜¤ë¥´ëŠ” ë²„ê·¸ ë°©ì–´ì„ ] 
+        // ì™¸ë¶€ì—ì„œ ì–¼ë§ˆì˜ ìˆ˜ì¹˜ë¥¼ ë„˜ê²¨ì£¼ë“  ê°•ì œë¡œ ê²½í—˜ì¹˜ë¥¼ ì •í™•íˆ '1'ì”©ë§Œ ì˜¬ë¦¬ë„ë¡ ìˆ˜ì‹ì„ ê³ ì •í•©ë‹ˆë‹¤!
+        currentExp += 1;
 
-        // °æÇèÄ¡°¡ ÃÖ´ë °æÇèÄ¡ ÀÌ»óÀÏ ¶§
-        while (currentExp >= maxExp)
+        // í•˜ë‹¨ UI ê²Œì´ì§€ ì‹¤ì‹œê°„ ì—°ë™
+        if (InGameHUDManager.instance != null)
+        {
+            InGameHUDManager.instance.UpdateExpBar((float)currentExp, (float)maxExp);
+        }
+
+        // ê²½í—˜ì¹˜ ì¶©ì¡± ì‹œ ë ˆë²¨ì—…
+        if (currentExp >= maxExp)
         {
             LevelUp();
         }
@@ -42,35 +36,19 @@ public class PlayerLevelManager : MonoBehaviour
 
     private void LevelUp()
     {
-        currentExp -= maxExp; // »ç¿ëµÈ °æÇèÄ¡ Á¦¿Ü
-        currentLevel++;
+        currentExp = 0; // ê²½í—˜ì¹˜ ë¦¬ì…‹
+        level++;
+        maxExp = Mathf.RoundToInt(maxExp * 1.3f);
 
-        // ¹ì¼­·ù Æ¯¼º: ·¹º§ÀÌ ¿Ã¶ó°¥¼ö·Ï ÇÊ¿ä °æÇèÄ¡µµ Á¡Á¡ ´Ã¾î³² (¿¹: °¢ ·¹º§¸¶´Ù 1.2¹è + 5)
-        maxExp = Mathf.RoundToInt(maxExp * 1.2f) + 5;
+        if (InGameHUDManager.instance != null)
+        {
+            InGameHUDManager.instance.UpdateExpBar((float)currentExp, (float)maxExp);
+        }
 
-        Debug.LogWarning($"·¹º§ ¾÷! »õ·Î¿î ·¹º§: {currentLevel} ÀÔ´Ï´Ù");
-
-        // ·¹º§¾÷ UI Ç¥½Ã
-        TriggerLevelUpUI();
-    }
-
-    private void TriggerLevelUpUI()
-    {
-        // LevelUpUIManager¿¡¼­ UI Ç¥½Ã
+        // ë ˆë²¨ì—… ë§¤ë‹ˆì € í˜¸ì¶œ
         if (LevelUpUIManager.instance != null)
         {
-            LevelUpUIManager.instance.ShowLevelUpUI();
+            LevelUpUIManager.instance.OpenLevelUpUI();
         }
-        else
-        {
-            Debug.LogError("LevelUpUIManager ½Ì±ÛÅæÀ» Ã£À» ¼ö ¾ø½À´Ï´Ù!");
-        }
-    }
-
-    // µğ¹ö±×: ÇÃ·¹ÀÌ¾î ÁÖº¯ÀÇ ÇÃ·¹ÀÌ¾î ÀÚµ¿ ¼öÁı ¹üÀ§¸¦ ¿¡µğÅÍ¿¡¼­ È®ÀÎÇÏ±â À§ÇÑ ÇÔ¼ö
-    private void OnDrawGizmosSelected()
-    {
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(transform.position, magnetRadius);
     }
 }

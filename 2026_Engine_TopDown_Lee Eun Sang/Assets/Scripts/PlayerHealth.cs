@@ -1,18 +1,18 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using System.Collections;
 using UnityEngine.SceneManagement;
 
 public class PlayerHealth : MonoBehaviour
 {
-    [Header("Ã¼·Â ¼³Á¤")]
+    [Header("ì²´ë ¥ ì„¤ì •")]
     public int maxHealth = 100;
     public int currentHealth;
 
-    [Header("ÇÇÇØ ¼³Á¤")]
+    [Header("í”¼ê²© ì„¤ì •")]
     public int enemyDamage = 10;
     public float invincibilityTime = 0.25f;
 
-    [Header("ÇÇ°Ý È¿°ú")]
+    [Header("í”¼ê²© íš¨ê³¼")]
     public float blinkDuration = 0.25f;
     public float blinkInterval = 0.05f;
 
@@ -22,7 +22,13 @@ public class PlayerHealth : MonoBehaviour
 
     private void Start()
     {
-        currentHealth = maxHealth;
+        currentHealth = maxHealth; // â˜… ë¨¼ì € ì´ˆê¸°í™”
+
+        if (InGameHUDManager.instance != null)
+        {
+            InGameHUDManager.instance.UpdateHealthBar(currentHealth, maxHealth);
+        }
+
         sr = GetComponent<SpriteRenderer>();
         if (sr != null) originalColor = sr.color;
     }
@@ -32,7 +38,13 @@ public class PlayerHealth : MonoBehaviour
         if (isInvincible) return;
 
         currentHealth -= damage;
-        Debug.Log("ÇÃ·¹ÀÌ¾î ÇöÀç Ã¼·Â: " + currentHealth);
+        Debug.Log("í”Œë ˆì´ì–´ í˜„ìž¬ ì²´ë ¥: " + currentHealth);
+
+        // â˜… í”¼ê²© ì‹œ ì²´ë ¥ë°” ì¦‰ì‹œ ê°±ì‹ 
+        if (InGameHUDManager.instance != null)
+        {
+            InGameHUDManager.instance.UpdateHealthBar(currentHealth, maxHealth);
+        }
 
         StartCoroutine(InvincibilityEffect());
 
@@ -47,6 +59,11 @@ public class PlayerHealth : MonoBehaviour
     {
         maxHealth += amount;
         currentHealth = maxHealth;
+
+        if (InGameHUDManager.instance != null)
+        {
+            InGameHUDManager.instance.UpdateHealthBar(currentHealth, maxHealth);
+        }
     }
 
     private IEnumerator InvincibilityEffect()
@@ -78,29 +95,37 @@ public class PlayerHealth : MonoBehaviour
 
     private void Die()
     {
-        Debug.Log("ÇÃ·¹ÀÌ¾î »ç¸Á - Á¤»ê ÁøÇà");
+        Debug.Log("í”Œë ˆì´ì–´ ì‚¬ë§ - ê²Œìž„ ì˜¤ë²„");
 
-        // µ¥ÀÌÅÍ ¸Å´ÏÀú Á¤»ê ¼¼ÀÌºê ½ÇÇà
         if (GameDataManager.Instance != null)
         {
             GameDataManager.Instance.SaveGameResult();
         }
 
-        // GameManager¸¦ ÅëÇØ Á¤¼®ÀûÀ¸·Î °ÔÀÓ ¿À¹ö È­¸é ¿äÃ»
         if (GameManager.Instance != null)
         {
             GameManager.Instance.GameOver();
         }
         else
         {
-            // ¸¸¾à ÇÏÀÌ¾î¶óÅ°¿¡ GameManager ¿ÀºêÁ§Æ®°¡ ¹èÄ¡µÇÁö ¾Ê¾Ò´Ù¸é Áï½Ã ´ÙÀÌ·ºÆ® ÀüÈ¯
             SceneManager.LoadScene("GameOver");
         }
     }
 
     public void RestoreHealth(int amount)
     {
-        currentHealth = Mathf.Min(currentHealth + amount, maxHealth);
-        Debug.Log($"[Ã¼·Â È¸º¹] ÇöÀç Ã¼·Â: {currentHealth}/{maxHealth}");
+        currentHealth = currentHealth + amount;
+
+        if (currentHealth > maxHealth)
+        {
+            currentHealth = maxHealth;
+        }
+
+        Debug.Log($"[ì²´ë ¥ íšŒë³µ] í˜„ìž¬ ì²´ë ¥: {currentHealth}/{maxHealth}");
+
+        if (InGameHUDManager.instance != null)
+        {
+            InGameHUDManager.instance.UpdateHealthBar((float)currentHealth, (float)maxHealth);
+        }
     }
 }

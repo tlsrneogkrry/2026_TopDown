@@ -13,18 +13,13 @@ MonoBehaviour:
   m_Name: Stage_1_Data
   m_EditorClassIdentifier: Assembly-CSharp::StageWaveData
   waveList:
-  - waveName: "\uC5ED\uBCD1\uC758\uC0AC\uC758 \uAD11\uAE30"
-    enemyPrefabs:
-    - {fileID: 8022915852739705099, guid: ce464a5ff07beae4a9c6a18aca8727dd, type: 3}
-    spawnInterval: 3
-    isBossWave: 1
   - waveName: "\uD638\uBC15\uC758 \uC2B5\uACA9"
     enemyPrefabs:
     - {fileID: 8022915852739705099, guid: 67bf78fa1dade0744815af65cb587369, type: 3}
-    spawnInterval: 1
+    spawnInterval: 0.6
     isBossWave: 0
   - waveName: "\uC774\uBE68\uAD34\uBB3C\uC758 \uBD84\uB178"
     enemyPrefabs:
     - {fileID: 8022915852739705099, guid: 10d5385651c26f44b8ae4b0b8285242f, type: 3}
-    spawnInterval: 0.5
+    spawnInterval: 0.6
     isBossWave: 0
