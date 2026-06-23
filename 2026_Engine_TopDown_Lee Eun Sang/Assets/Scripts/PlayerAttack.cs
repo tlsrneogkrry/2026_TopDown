@@ -20,16 +20,50 @@ public class PlayerAttack : MonoBehaviour
     // ★ [버그 해결 핵심] 파동 코루틴이 중복 실행되는 것을 원천 차단하는 안전장치
     private bool isAttacking = false;
 
+    // 성기사의 검을 먹었을 때 데미지를 올리는 함수
     public void UpgradeDamage(int amount)
     {
+        // 1. 먼저 내 스크립트의 데미지를 올립니다.
         attackDamage += amount;
-        Debug.Log($"[능력치 상승] 현재 인게임 공격력: {attackDamage}");
+        Debug.Log($"[{gameObject.name}] 현재 인게임 공격력: {attackDamage}");
+
+        // 2. 만약 지팡이 효과로 스크립트가 여러 개 복사되어 있다면, 다른 모든 PlayerAttack들의 데미지도 똑같이 올려줍니다!
+        PlayerAttack[] allAttacks = GetComponents<PlayerAttack>();
+        foreach (PlayerAttack attack in allAttacks)
+        {
+            attack.attackDamage = this.attackDamage;
+        }
+    }
+
+    // ★ [마법사의 지팡이용 함수 추가 완료!] 새 게임 초기화용 변수는 절대 건들지 않습니다.
+    public void UpgradeAttackCount(int amount)
+    {
+        for (int i = 0; i < amount; i++)
+        {
+            // 플레이어 자신(gameObject)에게 새로운 PlayerAttack 스크립트 컴포넌트를 하나 더 추가 장착합니다!
+            PlayerAttack additionalAttack = gameObject.AddComponent<PlayerAttack>();
+
+            // 새로 태어난 복사본 스크립트에게 현재까지 업그레이드된 능력치(데미지, 쿨타임 등)를 그대로 동기화해 줍니다.
+            additionalAttack.attackDamage = this.attackDamage;
+            additionalAttack.attackCooldown = this.attackCooldown;
+            additionalAttack.attackRange = this.attackRange;
+            additionalAttack.autoAttackDetectionRange = this.autoAttackDetectionRange;
+
+            Debug.LogWarning($"[아이템 효과] 플레이어에게 독립적인 공격 스크립트가 추가 장착되었습니다! (총 공격 횟수 추가)");
+        }
     }
 
     public void UpgradeCooldown(float amount)
     {
         attackCooldown = Mathf.Max(0.1f, attackCooldown - amount);
         Debug.Log($"[능력치 상승] 현재 인게임 공격 쿨타임: {attackCooldown}");
+
+        // 쿨타임 감소도 마찬가지로 늘어난 모든 지팡이에 동기화해 줍니다.
+        PlayerAttack[] allAttacks = GetComponents<PlayerAttack>();
+        foreach (PlayerAttack attack in allAttacks)
+        {
+            attack.attackCooldown = this.attackCooldown;
+        }
     }
 
     public void UpgradeMaxHealth(float amount)

@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e0a919dca9c04b64a984ef14663c9a06, type: 3}
+  m_Name: NewBossData
+  m_EditorClassIdentifier: Assembly-CSharp::BossData
+  bossName: "\uC5ED\uBCD1\uC758\uC0AC"
+  maxHp: 200
+  moveSpeed: 1.3
+  treasureChestPrefab: {fileID: 6138231699662663391, guid: 4f1b704a65b25a34d85ae897ef9893ab, type: 3}

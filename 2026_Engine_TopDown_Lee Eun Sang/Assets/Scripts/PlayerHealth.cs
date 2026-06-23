@@ -97,4 +97,10 @@ public class PlayerHealth : MonoBehaviour
             SceneManager.LoadScene("GameOver");
         }
     }
+
+    public void RestoreHealth(int amount)
+    {
+        currentHealth = Mathf.Min(currentHealth + amount, maxHealth);
+        Debug.Log($"[체력 회복] 현재 체력: {currentHealth}/{maxHealth}");
+    }
 }

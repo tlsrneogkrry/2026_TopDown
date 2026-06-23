@@ -1,11 +1,10 @@
-using System.Collections;
-using System.Collections.Generic;
+ï»¿using System.Collections.Generic;
 using UnityEngine;
 
 public class EnemySpawner : MonoBehaviour
 {
-    [Header("½ºÅ©¸³ÅÍºí ¿ÀºêÁ§Æ® µ¥ÀÌÅÍ (¡Ú°úÁ¦ ÇÊ¼ö Á¶°Ç)")]
-    [SerializeField] private StageWaveData currentStageData; // ¿©±â¿¡ ¸¸µç SO µ¥ÀÌÅÍ¸¦ ²È½À´Ï´Ù.
+    [Header("ìŠ¤í¬ë¦½í„°ë¸” ì˜¤ë¸Œì íŠ¸ ë°ì´í„°")]
+    [SerializeField] private StageWaveData currentStageData;
 
     [Header("Target")]
     [SerializeField] private Transform playerTransform;
@@ -14,9 +13,22 @@ public class EnemySpawner : MonoBehaviour
     [SerializeField] private float minRadius = 7f;
     [SerializeField] private float maxRadius = 11f;
 
+    [Header("ë³´ìŠ¤ ìŠ¤í° ì„¤ì •")]
+    [SerializeField] private GameObject bossPrefab;
+
+    // â˜… [ìœ ì €ë‹˜ ìš”ì²­ ê¸°ë¯¹] ìµœëŒ€ ëª¬ìŠ¤í„° ë§ˆë¦¬ ìˆ˜ ì œí•œ ì„¤ì • ì¹¸ì…ë‹ˆë‹¤.
+    [Header("ìµœëŒ€ ëª¬ìŠ¤í„° ìˆ˜ ì œí•œ ì„¤ì •")]
+    [SerializeField] private int maxEnemyCount = 100; // ì¸ìŠ¤í™í„°ì—ì„œ ì´ ìˆ«ìë¥¼ ë°”ê¾¸ë©´ ìµœëŒ€ ë§ˆë¦¬ ìˆ˜ê°€ ì œí•œë©ë‹ˆë‹¤!
+
     private int currentWaveIndex = 0;
     private float spawnTimer;
-    private float waveTimer; // 1ºĞ ¼¼´Â Å¸ÀÌ¸Ó
+
+    private float totalPlayTimer = 0f;
+    private float waveDurationTimer = 0f;
+    private float lastBossSpawnTime = 0f;
+
+    private int waveLoopCount = 0;
+    private int hpBonusAmount = 0;         // ëˆ„ì ëœ ì²´ë ¥ ì¦ê°€ëŸ‰ (ë¼ìš´ë“œë‹¹ 80ì”© ì¦ê°€)
 
     void Start()
     {
@@ -30,31 +42,61 @@ public class EnemySpawner : MonoBehaviour
     void Update()
     {
         if (playerTransform == null || currentStageData == null) return;
-        if (currentWaveIndex >= currentStageData.waveList.Count) return; // ¸ğµç ¿şÀÌºê Á¾·á ½Ã ¾ÈÀüÀåÄ¡
+        if (currentStageData.waveList.Count == 0) return;
 
-        // 1. ½Ã°£ Èå¸§¿¡ µû¸¥ ¿şÀÌºê ÀÚµ¿ ÀüÈ¯ ·ÎÁ÷ (¹ì¼­¶óÀÌÅ© ÇÙ½É)
-        waveTimer += Time.deltaTime;
-        if (waveTimer >= 60f) // 60ÃÊ(1ºĞ)¸¶´Ù ´ÙÀ½ ¿şÀÌºê·Î ÀÚµ¿ º¯°æ
+        totalPlayTimer += Time.deltaTime;
+        waveDurationTimer += Time.deltaTime;
+
+        // 1. 2ë¶„(120ì´ˆ)ë§ˆë‹¤ ê³ ì • ë³´ìŠ¤ ê¸°ìŠµ ìŠ¤í°
+        if (totalPlayTimer - lastBossSpawnTime >= 120f)
         {
-            waveTimer = 0f;
-            currentWaveIndex++;
-            Debug.LogWarning($"[¿şÀÌºê ÀüÈ¯] ´ÙÀ½ ¿şÀÌºê·Î º¯°æµÇ¾ú½À´Ï´Ù! ÇöÀç ÀÎµ¦½º: {currentWaveIndex}");
-
-            if (currentWaveIndex >= currentStageData.waveList.Count) return;
+            lastBossSpawnTime = totalPlayTimer;
+            SpawnAbsoluteBoss();
         }
 
-        // 2. ÇöÀç ¿şÀÌºêÀÇ ¼ÒÈ¯ ÁÖ±â¿¡ ¸ÂÃç Àû Á¨ÇÏ±â
+        // 2. 1ë¶„(60ì´ˆ)ë§ˆë‹¤ ì›¨ì´ë¸Œ ì „í™˜ ë° 1~2ë²ˆ ë¬´í•œ ë°˜ë³µ ì—°ì‚°
+        if (waveDurationTimer >= 60f)
+        {
+            waveDurationTimer = 0f;
+            currentWaveIndex++;
+
+            if (currentWaveIndex >= currentStageData.waveList.Count)
+            {
+                currentWaveIndex = 0;
+                waveLoopCount++;
+                hpBonusAmount = waveLoopCount * 80; // ì„¸íŠ¸ ë¦¬ì…‹ ì‹œ í”¼ 80 ì¦ê°€
+                Debug.LogWarning($"â™»ï¸ [ì›¨ì´ë¸Œ ëŒ€ë°˜ë³µ] ë‹¤ì‹œ 1ë²ˆ ì›¨ì´ë¸Œ ì‹œì‘! (í˜„ì¬ ëª¬ìŠ¤í„° ì¶”ê°€ HP: +{hpBonusAmount})");
+            }
+            else
+            {
+                int totalSteps = (waveLoopCount * currentStageData.waveList.Count) + currentWaveIndex;
+                hpBonusAmount = totalSteps * 80; // ë‹¨ê³„ ë„˜ì–´ê°ˆ ë•Œë§ˆë‹¤ í”¼ 80 ì¦ê°€
+                Debug.LogWarning($"[ì›¨ì´ë¸Œ ë‹¨ê³„ ì „í™˜] í˜„ì¬ ì›¨ì´ë¸Œ ì¸ë±ìŠ¤: {currentWaveIndex} (í˜„ì¬ ëª¬ìŠ¤í„° ì¶”ê°€ HP: +{hpBonusAmount})");
+            }
+        }
+
+        // 3. í˜„ì¬ ëº‘ëº‘ì´ ëŒê³  ìˆëŠ” ì›¨ì´ë¸Œ ì£¼ê¸°ì— ë§ì¶° ì¼ë°˜ ì  ìŠ¤í°
         StageWaveData.EnemySpawnInfo currentWave = currentStageData.waveList[currentWaveIndex];
         spawnTimer += Time.deltaTime;
 
         if (spawnTimer >= currentWave.spawnInterval)
         {
             spawnTimer = 0f;
-            SpawnEnemy(currentWave);
+
+            // â˜… [ìµœëŒ€ ëª¬ìŠ¤í„° ìˆ˜ ì²´í¬ ìµœì í™” ë°©ì–´ì„ ]
+            // í˜„ì¬ ë§µì— ì‚´ì•„ìˆëŠ” "Enemy" íƒœê·¸ë¥¼ ê°€ì§„ ëª¬ìŠ¤í„° ê°œìˆ˜ë¥¼ ì¹´ìš´íŠ¸í•©ë‹ˆë‹¤.
+            int currentEnemyCount = GameObject.FindGameObjectsWithTag("Enemy").Length;
+
+            // ë§Œì•½ í˜„ì¬ ë§ˆë¦¬ ìˆ˜ê°€ ì¸ìŠ¤í™í„°ì— ì§€ì •í•œ ìµœëŒ€ ë§ˆë¦¬ ìˆ˜ë³´ë‹¤ í¬ê±°ë‚˜ ê°™ìœ¼ë©´ ì†Œí™˜ì„ ì ì‹œ Skipí•©ë‹ˆë‹¤.
+            if (currentEnemyCount < maxEnemyCount)
+            {
+                SpawnNormalEnemy(currentWave);
+            }
         }
     }
 
-    void SpawnEnemy(StageWaveData.EnemySpawnInfo wave)
+    // ì¼ë°˜ ëª¬ìŠ¤í„° ìŠ¤í° (ì²´ë ¥ ë£¨í”„ ëˆ„ì  ë°˜ì˜)
+    void SpawnNormalEnemy(StageWaveData.EnemySpawnInfo wave)
     {
         if (wave.enemyPrefabs.Count == 0) return;
 
@@ -66,19 +108,33 @@ public class EnemySpawner : MonoBehaviour
         {
             GameObject spawnedEnemy = Instantiate(enemyPrefab, spawnPosition, Quaternion.identity);
 
-            // ¡Ú ¸¸¾à µ¥ÀÌÅÍ »ó¿¡ 'isBossWave'°¡ Ã¼Å©µÇ¾î ÀÖ´Ù¸é º¸½º Àü¿ë Ã³¸® ÁøÇà
-            if (wave.isBossWave)
+            EnemyHealth health = spawnedEnemy.GetComponent<EnemyHealth>();
+            if (health != null)
             {
-                // º¸½º´Â Ã¼·ÂÀ» ¾öÃ»³ª°Ô ´Ã·ÁÁÖ°Å³ª ½ºÄÉÀÏÀ» Å°¿öÁİ´Ï´Ù.
-                EnemyHealth health = spawnedEnemy.GetComponent<EnemyHealth>();
-                if (health != null)
-                {
-                    health.maxHp *= 5; // º¸½º´Â ÀÏ¹İ ¸÷ Ã¼·ÂÀÇ 5¹è!
-                    // ³ªÁß¿¡ º¸½º°¡ Á×À» ¶§ »óÀÚ ÁÖ°Ô ÇÏ·Á¸é ¿©±â¼­ º¸½º ÅÂ±×¸¦ ´Ş¾ÆÁÖ°Å³ª ÄÄÆ÷³ÍÆ®·Î Á¦¾îÇÕ´Ï´Ù.
-                }
-                spawnedEnemy.transform.localScale *= 2f; // µ¢Ä¡µµ 2¹è!
+                health.maxHp += hpBonusAmount;
             }
         }
+    }
+
+    // â˜… [ë³´ìŠ¤ ìŠ¤í° ê¸°ë¯¹ ìˆ˜ì •] ì¼ë°˜ ëª¹ì²˜ëŸ¼ ë³´ìŠ¤ë„ ì›¨ì´ë¸Œê°€ ë„˜ì–´ê°ˆ ë•Œë§ˆë‹¤ ì²´ë ¥ì´ ëˆ„ì  ì¦ê°€í•©ë‹ˆë‹¤!
+    void SpawnAbsoluteBoss()
+    {
+        if (bossPrefab == null) return;
+
+        Vector2 spawnPosition = GetRandomSpawnPosition();
+        GameObject spawnedBoss = Instantiate(bossPrefab, spawnPosition, Quaternion.identity);
+
+        EnemyHealth bossHealth = spawnedBoss.GetComponent<EnemyHealth>();
+        if (bossHealth != null)
+        {
+            // ê¸°ë³¸ ë³´ìŠ¤ ì²´ë ¥(ì˜ˆ: 500)ì— ì¼ë°˜ ëª¹ê³¼ ë˜‘ê°™ì´ ìŒ“ì¸ hpBonusAmountë¥¼ ë”í•´ì¤ë‹ˆë‹¤.
+            // ë³´ìŠ¤ë‹µê²Œ ë” ë‹¨ë‹¨í•˜ê²Œ ë§Œë“¤ê³  ì‹¶ë‹¤ë©´ (hpBonusAmount * 2) ë“±ìœ¼ë¡œ ì¦í­í•˜ì…”ë„ ì¢‹ìŠµë‹ˆë‹¤!
+            bossHealth.maxHp = 500 + hpBonusAmount;
+
+            Debug.LogError($"ğŸš¨ [ë³´ìŠ¤ ì¶œí˜„] í˜„ì¬ ì›¨ì´ë¸Œ ë²„í”„ ë°˜ì˜ ë³´ìŠ¤ ì²´ë ¥: {bossHealth.maxHp} (ê¸°ë³¸ 500 + ì¶”ê°€ {hpBonusAmount})");
+        }
+
+        spawnedBoss.transform.localScale *= 2f;
     }
 
     Vector2 GetRandomSpawnPosition()
