@@ -145,7 +145,7 @@ MonoBehaviour:
   - {fileID: -8307390040965355510, guid: 3d0078f5ec9c2a74c8d32bb91143cbd1, type: 3}
   - {fileID: -3388475590322593712, guid: 3d0078f5ec9c2a74c8d32bb91143cbd1, type: 3}
   frameTime: 0.15
-  moveSpeed: 1.3
+  moveSpeed: 0.85
   raycastDistance: 0
   traceDistance: 30
 --- !u!114 &-3907375083976767286
