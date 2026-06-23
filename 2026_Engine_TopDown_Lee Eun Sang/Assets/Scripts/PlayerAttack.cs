@@ -115,6 +115,11 @@ public class PlayerAttack : MonoBehaviour
         {
             PerformAttack();
         }
+
+        if (SoundManager.instance != null)
+        {
+            SoundManager.instance.PlaySFX(SoundManager.instance.attackSound);
+        }
     }
 
     private void PerformAttack()
@@ -193,4 +198,6 @@ public class PlayerAttack : MonoBehaviour
     {
         if (slashEffectObject != null) Destroy(slashEffectObject);
     }
+
+
 }

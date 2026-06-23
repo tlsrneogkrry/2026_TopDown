@@ -50,5 +50,10 @@ public class PlayerLevelManager : MonoBehaviour
         {
             LevelUpUIManager.instance.OpenLevelUpUI();
         }
+
+        if (SoundManager.instance != null)
+        {
+            SoundManager.instance.PlaySFX(SoundManager.instance.levelUpSound);
+        }
     }
 }

@@ -41,6 +41,10 @@ public class EnemyHealth : MonoBehaviour
         {
             Die();
         }
+        if (SoundManager.instance != null)
+        {
+            SoundManager.instance.PlaySFX(SoundManager.instance.hitSound);
+        }
     }
 
     private IEnumerator FlashHitColor()

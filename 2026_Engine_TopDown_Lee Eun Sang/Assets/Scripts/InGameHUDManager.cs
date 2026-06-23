@@ -1,28 +1,29 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 using TMPro;
 
 public class InGameHUDManager : MonoBehaviour
 {
     public static InGameHUDManager instance;
 
-    [Header("HUD UI ������Ʈ")]
+    [Header("HUD UI 컴포넌트")]
     public TextMeshProUGUI timerText;
     public TextMeshProUGUI killCountText;
 
-    [Header("�÷��̾� ü�¹� ����")]
+    [Header("플레이어 체력바 설정")]
     public Slider healthSlider;
     public Transform playerTransform;
     public Vector3 healthBarOffset = new Vector3(0f, 1.2f, 0f);
 
-    // �� ü�¹ٰ� World Space Canvas���� Screen Space Canvas���� ����
-    [Tooltip("ü�¹� Canvas�� World Space�� true, Screen Space�� false")]
+    // ★ 체력바가 World Space Canvas인지 Screen Space Canvas인지 선택
+    [Tooltip("체력바 Canvas가 World Space면 true, Screen Space면 false")]
     public bool isWorldSpaceCanvas = false;
 
-    // Screen Space�� �� ����� Camera ����
+    // Screen Space일 때 사용할 Camera 참조
     private Camera mainCamera;
 
-    [Header("����ġ �� (Slider)")]
+    [Header("경험치 바 (Slider)")]
     public Slider expSlider;
 
     private float gameTimer = 0f;
@@ -52,11 +53,11 @@ public class InGameHUDManager : MonoBehaviour
                 playerTransform = playerObj.transform;
         }
 
-        // ���� �� ü�¹� �ʱⰪ ���� (�� �� ����)
+        // 시작 시 체력바 초기값 세팅 (꽉 찬 상태)
         if (healthSlider != null)
             healthSlider.value = 1f;
 
-        // ����ġ �� �ʱⰪ
+        // 경험치 바 초기값
         if (expSlider != null)
             expSlider.value = 0f;
     }
@@ -72,18 +73,18 @@ public class InGameHUDManager : MonoBehaviour
 
         if (isWorldSpaceCanvas)
         {
-            // World Space Canvas: �׳� ���� ��ǥ�� ���󰡸� ��
+            // World Space Canvas: 그냥 월드 좌표로 따라가면 됨
             healthSlider.transform.position = playerTransform.position + healthBarOffset;
         }
         else
         {
-            // �� Screen Space Canvas: ���� ��ǥ�� ��ũ�� ��ǥ�� ��ȯ�ؾ� ��
+            // ★ Screen Space Canvas: 월드 좌표를 스크린 좌표로 변환해야 함
             if (mainCamera == null) return;
 
             Vector3 worldPos = playerTransform.position + healthBarOffset;
             Vector3 screenPos = mainCamera.WorldToScreenPoint(worldPos);
 
-            // �÷��̾ ī�޶� �ڿ� ������ �����
+            // 플레이어가 카메라 뒤에 있으면 숨기기
             if (screenPos.z < 0)
             {
                 healthSlider.gameObject.SetActive(false);
@@ -127,5 +128,42 @@ public class InGameHUDManager : MonoBehaviour
     {
         if (expSlider == null || maxExp <= 0) return;
         expSlider.value = currentExp / maxExp;
+    }
+
+    // ★ 인게임 저장 버튼 OnClick()에 연결하세요
+    public void OnSaveButtonClicked()
+    {
+        // GameDataManager가 없으면 (타이틀을 거치지 않고 인게임 씬 직접 실행 시) 자동 생성
+        if (GameDataManager.Instance == null)
+        {
+            GameObject obj = new GameObject("GameDataManager");
+            obj.AddComponent<GameDataManager>();
+            Debug.LogWarning("GameDataManager가 없어서 자동 생성했습니다. 타이틀 씬부터 실행하는 것을 권장합니다.");
+        }
+
+        GameDataManager.Instance.SaveGameData();
+        Debug.Log("저장 완료!");
+    }
+
+    // ★ 인게임 불러오기 버튼 OnClick()에 연결하세요
+    public void OnLoadButtonClicked()
+    {
+        // GameDataManager가 없으면 자동 생성
+        if (GameDataManager.Instance == null)
+        {
+            GameObject obj = new GameObject("GameDataManager");
+            obj.AddComponent<GameDataManager>();
+            Debug.LogWarning("GameDataManager가 없어서 자동 생성했습니다. 타이틀 씬부터 실행하는 것을 권장합니다.");
+        }
+
+        // JSON 파일에서 데이터 읽기
+        GameDataManager.Instance.LoadGameData();
+
+        Debug.Log("불러오기 완료! 씬을 다시 로드합니다.");
+
+        // ★ 저장된 스테이지 씬을 새로 로드
+        // 씬 로드 완료 후 OnSceneLoaded → ApplyLoadedDataToGame() 자동 호출됨
+        int stage = GameDataManager.Instance.playerData.stage;
+        SceneManager.LoadScene("Level_" + stage);
     }
 }

@@ -42,6 +42,11 @@ public class ExpGem : MonoBehaviour
                 levelManager.AddExp(expAmount); // 1 전달
             }
             Destroy(gameObject);
+
+            if (SoundManager.instance != null)
+            {
+                SoundManager.instance.PlaySFX(SoundManager.instance.expGetSound);
+            }
         }
     }
 }

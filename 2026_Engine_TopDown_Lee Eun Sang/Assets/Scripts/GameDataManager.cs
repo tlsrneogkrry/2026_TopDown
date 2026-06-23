@@ -1,12 +1,8 @@
-using System;
+ï»¿using System;
 using System.IO;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-
-// =================================================================
-// [ÁÖ±³Àç 13°­ ±Ô°İ] µ¥ÀÌÅÍ ±¸Á¶Ã¼ Á¤ÀÇ (´Ù¸¥ °÷Àº Àı´ë ¼öÁ¤ ¾øÀ½)
-// =================================================================
 
 [Serializable]
 public class PlayerData
@@ -15,56 +11,136 @@ public class PlayerData
     public int stage = 1;
     public int totalGold = 0;
     public int playCount = 0;
+
+    public int level = 1;
+    public int currentExp = 0;
+    public int maxExp = 100;
+
+    public int currentHealth = 100;
+    public int maxHealth = 100;
+
+    public float attackDamage = 10f;
+    public float attackCooldown = 1f;
+
+    public float totalPlayTime = 0f;
+
+    // â˜… ê°•í™” ë°ì´í„° â€” ì£½ì–´ë„ ì´ˆê¸°í™”ë˜ì§€ ì•Šê³  ì˜êµ¬ ìœ ì§€
+    public UpgradeData upgradeData = new UpgradeData();
 }
 
-// =================================================================
-// [ÁÖ±³Àç 13°­ ±Ô°İ] ¸ŞÀÎ µ¥ÀÌÅÍ ¸Å´ÏÀú ÄÄÆ÷³ÍÆ®
-// =================================================================
 public class GameDataManager : MonoBehaviour
 {
     public static GameDataManager Instance;
 
-    [Header("¸Ş¸ğ¸® µ¥ÀÌÅÍ ÀûÀç ¿µ¿ª")]
+    [Header("ë©”ëª¨ë¦¬ ìƒì˜ ê²Œì„ ë°ì´í„°")]
     public PlayerData playerData;
 
-    // ¡Ú º¯¼ö ¼±¾ğ Å¸ÀÔ°ú »ó´Ü Å¬·¡½º¸íÀ» 'GameSettingData'·Î Á¤È®ÇÏ°Ô ÀÏÄ¡½ÃÄ×½À´Ï´Ù.
-    public GameSettingData settingData;
+    // â˜… ScriptableObjectê°€ ì•„ë‹Œ ì¼ë°˜ í´ë˜ìŠ¤ì´ë¯€ë¡œ ì¸ìŠ¤í™í„°ì— ë…¸ì¶œí•˜ì§€ ì•ŠìŒ
+    //    â†’ ì¸ìŠ¤í™í„°ì—ì„œ nullë¡œ ë®ì–´ì”Œì›Œì§€ëŠ” ë²„ê·¸ ë°©ì§€
+    [HideInInspector] public GameSettingData settingData;
 
     private string SaveFilePath => Path.Combine(Application.persistentDataPath, "player_data.json");
     private string SettingFilePath => Path.Combine(Application.persistentDataPath, "setting_data.json");
 
     private void Awake()
     {
-        if (Instance == null)
-        {
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
-
-            LoadGameData();
-            LoadSettingData(); // ½ÃÀÛ ½Ã ¼¼ÆÃ µ¥ÀÌÅÍ ·Îµå
-        }
-        else
+        // â˜… ì´ë¯¸ Instanceê°€ ì¡´ì¬í•˜ë©´ ìì‹ (ìƒˆë¡œ ìƒì„±ëœ ê²ƒ)ì„ ì¦‰ì‹œ ì œê±°
+        if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
+            return;
         }
+
+        Instance = this;
+        DontDestroyOnLoad(gameObject);
+
+        // â˜… ì¸ìŠ¤í™í„°ì—ì„œ nullì´ ë  ìˆ˜ ìˆìœ¼ë¯€ë¡œ ë¨¼ì € ê¸°ë³¸ê°’ìœ¼ë¡œ ì´ˆê¸°í™”
+        if (settingData == null) settingData = new GameSettingData();
+
+        LoadGameData();
+        LoadSettingData();
+
+        // â˜… ì”¬ì´ ë¡œë“œë  ë•Œë§ˆë‹¤ ApplyLoadedDataToGame()ì„ ìë™ í˜¸ì¶œ
+        SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
-    // =================================================================
-    // [ÆÄÆ® 1] ¼¼ÀÌºê µ¥ÀÌÅÍ JSON ÀÔÃâ·Â (±âÁ¸ ±×´ë·Î À¯Áö)
-    // =================================================================
+    private void OnDestroy()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
 
+    // â˜… ì”¬ ì „í™˜ ì™„ë£Œ í›„ ìë™ìœ¼ë¡œ í˜¸ì¶œë¨
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        // ë©”ì¸ ë©”ë‰´ ì”¬ ë“± ë°ì´í„° ì ìš©ì´ í•„ìš” ì—†ëŠ” ì”¬ì€ ì´ë¦„ìœ¼ë¡œ ê±¸ëŸ¬ë‚¼ ìˆ˜ ìˆìŒ
+        // ì˜ˆ: if (scene.name == "MainMenu") return;
+
+        // â˜… í•œ í”„ë ˆì„ ë’¤ì— ì ìš© â€” ì”¬ì˜ ëª¨ë“  ì˜¤ë¸Œì íŠ¸ê°€ Awake/Startë¥¼ ë§ˆì¹œ í›„ ì‹¤í–‰ë˜ì–´ì•¼ í•¨
+        StartCoroutine(ApplyDataNextFrame());
+    }
+
+    private System.Collections.IEnumerator ApplyDataNextFrame()
+    {
+        // í•œ í”„ë ˆì„ ëŒ€ê¸° â†’ ì”¬ì˜ PlayerHealth, PlayerLevelManager ë“±ì´ ì´ˆê¸°í™”ëœ í›„ ì ìš©
+        yield return null;
+        ApplyLoadedDataToGame();
+    }
+
+    private void Update()
+    {
+        if (playerData != null)
+            playerData.totalPlayTime += Time.deltaTime;
+    }
+
+    // â˜… ì”¬ì— ìˆëŠ” ì˜¤ë¸Œì íŠ¸ì—ì„œ í˜„ì¬ ê°’ì„ ìˆ˜ì§‘í•´ playerDataì— ë°˜ì˜ í›„ ì €ì¥
     public void SaveGameData()
     {
         try
         {
+            CollectCurrentGameState();
+
             string json = JsonUtility.ToJson(playerData, true);
             File.WriteAllText(SaveFilePath, json);
-            Debug.Log("°ÔÀÓ µ¥ÀÌÅÍ ÀúÀåµÊ: " + json);
+            Debug.Log("ê²Œì„ ë°ì´í„° ì €ì¥ ì™„ë£Œ: " + json);
         }
         catch (Exception e)
         {
-            Debug.LogError("µ¥ÀÌÅÍ ÀúÀå Áß ¿À·ù ¹ß»ı: " + e.Message);
+            Debug.LogError("ë°ì´í„° ì €ì¥ ì¤‘ ì˜¤ë¥˜ ë°œìƒ: " + e.Message);
         }
+    }
+
+    private void CollectCurrentGameState()
+    {
+        // ë ˆë²¨ / ê²½í—˜ì¹˜
+        if (PlayerLevelManager.instance != null)
+        {
+            playerData.level = PlayerLevelManager.instance.level;
+            playerData.currentExp = PlayerLevelManager.instance.currentExp;
+            playerData.maxExp = PlayerLevelManager.instance.maxExp;
+        }
+
+        // ì²´ë ¥ / ê³µê²©ë ¥
+        GameObject playerObj = GameObject.FindWithTag("Player");
+        if (playerObj != null)
+        {
+            PlayerHealth health = playerObj.GetComponent<PlayerHealth>();
+            if (health != null)
+            {
+                playerData.currentHealth = health.currentHealth;
+                playerData.maxHealth = health.maxHealth;
+            }
+
+            PlayerAttack attack = playerObj.GetComponent<PlayerAttack>();
+            if (attack != null)
+            {
+                playerData.attackDamage = attack.attackDamage;
+                playerData.attackCooldown = attack.attackCooldown;
+            }
+        }
+
+        // â˜… stageëŠ” levelê³¼ ë¶„ë¦¬í•´ì„œ ë³„ë„ ê´€ë¦¬
+        // í•„ìš” ì‹œ StageManager ë“±ì—ì„œ ê°€ì ¸ì˜¤ë„ë¡ êµì²´í•˜ì„¸ìš”
+        // playerData.stage = StageManager.instance.currentStage;
     }
 
     public void LoadGameData()
@@ -75,36 +151,74 @@ public class GameDataManager : MonoBehaviour
             {
                 string json = File.ReadAllText(SaveFilePath);
                 playerData = JsonUtility.FromJson<PlayerData>(json);
-                Debug.Log("°ÔÀÓ µ¥ÀÌÅÍ ·ÎµåµÊ: " + json);
+                Debug.Log("ê²Œì„ ë°ì´í„° ë¶ˆëŸ¬ì˜¤ê¸° ì™„ë£Œ: " + json);
             }
             catch (Exception e)
             {
-                Debug.LogError("µ¥ÀÌÅÍ ·Îµå Áß ¿À·ù ¹ß»ı: " + e.Message);
+                Debug.LogError("ë°ì´í„° ë¶ˆëŸ¬ì˜¤ê¸° ì¤‘ ì˜¤ë¥˜ ë°œìƒ: " + e.Message);
                 playerData = new PlayerData();
             }
         }
         else
         {
             playerData = new PlayerData();
+            Debug.Log("ì €ì¥ íŒŒì¼ ì—†ìŒ â†’ ê¸°ë³¸ ë°ì´í„°ë¡œ ì´ˆê¸°í™”");
         }
     }
 
-    // =================================================================
-    // ¡Ú [ÆÄÆ® 2] È¯°æ ¼³Á¤ ¼¼ÆÃ µ¥ÀÌÅÍ JSON ÀÔÃâ·Â ¿À·ù ¿Ïº® ¼öÁ¤
-    // =================================================================
+    // â˜… ë¶ˆëŸ¬ì˜¨ playerDataë¥¼ ì‹¤ì œ ì”¬ì˜ ì˜¤ë¸Œì íŠ¸ì— ì ìš©
+    public void ApplyLoadedDataToGame()
+    {
+        if (playerData == null) return;
+
+        // ë ˆë²¨ / ê²½í—˜ì¹˜ ì ìš©
+        if (PlayerLevelManager.instance != null)
+        {
+            PlayerLevelManager.instance.level = playerData.level;
+            PlayerLevelManager.instance.currentExp = playerData.currentExp;
+            PlayerLevelManager.instance.maxExp = playerData.maxExp;
+        }
+
+        // ì²´ë ¥ ì ìš©
+        GameObject playerObj = GameObject.FindWithTag("Player");
+        if (playerObj != null)
+        {
+            PlayerHealth health = playerObj.GetComponent<PlayerHealth>();
+            if (health != null)
+            {
+                health.maxHealth = playerData.maxHealth;
+                health.currentHealth = playerData.currentHealth;
+
+                if (InGameHUDManager.instance != null)
+                    InGameHUDManager.instance.UpdateHealthBar(health.currentHealth, health.maxHealth);
+            }
+
+            PlayerAttack attack = playerObj.GetComponent<PlayerAttack>();
+            if (attack != null)
+            {
+                attack.attackDamage = (int)playerData.attackDamage;
+                attack.attackCooldown = playerData.attackCooldown;
+            }
+        }
+
+        // ê²½í—˜ì¹˜ ë°” ì ìš©
+        if (InGameHUDManager.instance != null)
+            InGameHUDManager.instance.UpdateExpBar(playerData.currentExp, playerData.maxExp);
+
+        Debug.Log("ì €ì¥ ë°ì´í„° ê²Œì„ì— ì ìš© ì™„ë£Œ!");
+    }
 
     public void SaveSettingData()
     {
         try
         {
-            // ¼öÁ¤µÈ GameSettingData Çü½ÄÀ¸·Î ¾ÈÀüÇÏ°Ô Á÷·ÄÈ­ ÀúÀåÇÕ´Ï´Ù.
             string json = JsonUtility.ToJson(settingData, true);
             File.WriteAllText(SettingFilePath, json);
-            Debug.Log("°ÔÀÓ ¼¼ÆÃ µ¥ÀÌÅÍ ÀúÀåµÊ: " + json);
+            Debug.Log("ì„¤ì • ë°ì´í„° ì €ì¥ ì™„ë£Œ");
         }
         catch (Exception e)
         {
-            Debug.LogError("¼¼ÆÃ µ¥ÀÌÅÍ ÀúÀå Áß ¿À·ù ¹ß»ı: " + e.Message);
+            Debug.LogError("ì„¤ì • ì €ì¥ ì¤‘ ì˜¤ë¥˜ ë°œìƒ: " + e.Message);
         }
     }
 
@@ -116,39 +230,59 @@ public class GameDataManager : MonoBehaviour
             {
                 string json = File.ReadAllText(SettingFilePath);
                 settingData = JsonUtility.FromJson<GameSettingData>(json);
-                Debug.Log("°ÔÀÓ ¼¼ÆÃ µ¥ÀÌÅÍ ·ÎµåµÊ: " + json);
             }
             catch (Exception e)
             {
-                Debug.LogError("¼¼ÆÃ µ¥ÀÌÅÍ ·Îµå Áß ¿À·ù ¹ß»ı: " + e.Message);
+                Debug.LogError("ì„¤ì • ë¶ˆëŸ¬ì˜¤ê¸° ì¤‘ ì˜¤ë¥˜ ë°œìƒ: " + e.Message);
                 settingData = new GameSettingData();
             }
         }
         else
         {
-            Debug.LogWarning("ÀúÀåµÈ ¼¼ÆÃ µ¥ÀÌÅÍ°¡ ¾ø½À´Ï´Ù. ±âº» ¼¼ÆÃÀ» »ı¼ºÇÕ´Ï´Ù.");
             settingData = new GameSettingData();
         }
     }
 
-    // =================================================================
-    // [ÆÄÆ® 3] ¿ÜºÎ ¿¬µ¿ Á¦¾î ÇÔ¼ö±º (±âÁ¸ ±×´ë·Î À¯Áö)
-    // =================================================================
-
     public void GameStart()
     {
-        LoadGameData();
-        if (playerData == null) playerData = new PlayerData();
+        // â˜… ìƒˆ ê²Œì„ ì‹œì‘ â€” ê°•í™” ë°ì´í„°ì™€ ê³¨ë“œ, í”Œë ˆì´ íšŸìˆ˜ëŠ” ìœ ì§€í•˜ê³  ë‚˜ë¨¸ì§€ ì´ˆê¸°í™”
+        int prevPlayCount = 0;
+        int prevGold = 0;
+        UpgradeData prevUpgrade = new UpgradeData();
 
-        playerData.playCount++;
-        SaveGameData();
+        if (playerData != null)
+        {
+            prevPlayCount = playerData.playCount;
+            prevGold = playerData.totalGold;
+            prevUpgrade = playerData.upgradeData;
+        }
 
+        playerData = new PlayerData();
+        playerData.playCount = prevPlayCount + 1;
+        playerData.totalGold = prevGold;       // ê³¨ë“œ ìœ ì§€
+        playerData.upgradeData = prevUpgrade;  // ê°•í™” ë‹¨ê³„ ìœ ì§€
+
+        // â˜… ê°•í™” ìˆ˜ì¹˜ë¥¼ ê¸°ë³¸ ìŠ¤íƒ¯ì— ë°˜ì˜
+        if (UpgradeManager.instance != null)
+        {
+            playerData.maxHealth = UpgradeManager.instance.GetBaseHealth();
+            playerData.currentHealth = playerData.maxHealth;
+            playerData.attackDamage = UpgradeManager.instance.GetBaseAttack();
+        }
+
+        // ì´ˆê¸°í™”ëœ ë°ì´í„°ë¥¼ JSONì— ì €ì¥
+        string json = JsonUtility.ToJson(playerData, true);
+        File.WriteAllText(SaveFilePath, json);
+
+        Debug.Log("ìƒˆ ê²Œì„ ì‹œì‘! ê°•í™” ìˆ˜ì¹˜ ì ìš© ì™„ë£Œ");
         SceneManager.LoadScene("Level_" + playerData.stage);
+        // ì”¬ ë¡œë“œ ì™„ë£Œ í›„ OnSceneLoaded â†’ ApplyLoadedDataToGame() ìë™ í˜¸ì¶œë¨
     }
 
     public void SaveGameResult()
     {
-        LoadGameData();
+        // í˜„ì¬ ì”¬ì—ì„œ ìµœì‹  ìƒíƒœ ìˆ˜ì§‘ í›„ ì €ì¥
+        CollectCurrentGameState();
 
         if (playerData != null)
         {
@@ -156,5 +290,13 @@ public class GameDataManager : MonoBehaviour
             playerData.collectedItems.Clear();
             SaveGameData();
         }
+    }
+
+    public string GetFormattedPlayTime()
+    {
+        if (playerData == null) return "00:00";
+        int minutes = Mathf.FloorToInt(playerData.totalPlayTime / 60f);
+        int seconds = Mathf.FloorToInt(playerData.totalPlayTime % 60f);
+        return string.Format("{0:00}:{1:00}", minutes, seconds);
     }
 }

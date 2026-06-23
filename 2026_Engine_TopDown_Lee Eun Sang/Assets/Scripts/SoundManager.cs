@@ -4,38 +4,101 @@ public class SoundManager : MonoBehaviour
 {
     public static SoundManager instance;
 
-    [Header("오디오 소스")]
-    private AudioSource audioSource;
+    [Header("오디오 소스 (컴포넌트)")]
+    private AudioSource bgmSource;
+    private AudioSource sfxSource;
 
-    [Header("효과음 오디오 클립 등록")]
-    // 유니티 인스펙터 창에서 보유하신 .mp3 나 .wav 파일을 여기에 드래그해서 넣을 것입니다.
-    public AudioClip hitSound;       // 몬스터 타격음
-    public AudioClip expGetSound;   // 경험치 보석 획득음
-    public AudioClip levelUpSound;  // 레벨업 소리
+    [Header("오디오 클립 등록")]
+    public AudioClip bgmClip;
+    public AudioClip attackSound;
+    public AudioClip hitSound;
+    public AudioClip expGetSound;
+    public AudioClip levelUpSound;
+
+    [Header("실시간 볼륨 값 (0.0 ~ 1.0)")]
+    public float masterVolume = 1f;
+    public float bgmVolume = 0.5f;
+    public float sfxVolume = 0.7f;
 
     private void Awake()
     {
-        if (instance == null)
-        {
-            instance = this;
-            DontDestroyOnLoad(gameObject); // 씬이 바뀌어도 사운드가 끊기지 않게 보존
-
-            // 사운드를 재생할 플레이어(AudioSource)를 자동으로 붙여줍니다.
-            audioSource = gameObject.AddComponent<AudioSource>();
-        }
-        else
+        // ★ 이미 instance가 존재하면 자신(새로 생성된 것)을 즉시 제거
+        if (instance != null && instance != this)
         {
             Destroy(gameObject);
+            return;
         }
+
+        instance = this;
+        DontDestroyOnLoad(gameObject);
+
+        bgmSource = gameObject.AddComponent<AudioSource>();
+        bgmSource.loop = true;
+
+        sfxSource = gameObject.AddComponent<AudioSource>();
+
+        LoadVolumeSettings();
     }
 
-    // ⭐ 어디서나 SoundManager.instance.PlaySound(SoundManager.instance.hitSound); 로 호출 가능!
-    public void PlaySound(AudioClip clip, float volume = 1f)
+    private void Start()
     {
-        if (clip != null && audioSource != null)
-        {
-            // PlayOneShot은 소리가 겹치더라도 끊기지 않고 중첩되어 이쁘게 출력됩니다. (뱀서 필수)
-            audioSource.PlayOneShot(clip, volume);
-        }
+        PlayBGM(bgmClip);
+    }
+
+    public void PlayBGM(AudioClip clip)
+    {
+        if (clip == null || bgmSource == null) return;
+        bgmSource.clip = clip;
+        UpdateBGMVolume();
+        bgmSource.Play();
+    }
+
+    public void PlaySFX(AudioClip clip)
+    {
+        if (clip == null || sfxSource == null) return;
+        float finalVolume = sfxVolume * masterVolume;
+        sfxSource.PlayOneShot(clip, finalVolume);
+    }
+
+    public void SetMasterVolume(float volume)
+    {
+        masterVolume = Mathf.Clamp01(volume);
+        UpdateBGMVolume();
+        SaveVolumeSettings();
+    }
+
+    public void SetBGMVolume(float volume)
+    {
+        bgmVolume = Mathf.Clamp01(volume);
+        UpdateBGMVolume();
+        SaveVolumeSettings();
+    }
+
+    public void SetSFXVolume(float volume)
+    {
+        sfxVolume = Mathf.Clamp01(volume);
+        SaveVolumeSettings();
+    }
+
+    private void UpdateBGMVolume()
+    {
+        if (bgmSource != null)
+            bgmSource.volume = bgmVolume * masterVolume;
+    }
+
+    private void SaveVolumeSettings()
+    {
+        PlayerPrefs.SetFloat("MasterVol", masterVolume);
+        PlayerPrefs.SetFloat("BgmVol", bgmVolume);
+        PlayerPrefs.SetFloat("SfxVol", sfxVolume);
+        PlayerPrefs.Save();
+    }
+
+    private void LoadVolumeSettings()
+    {
+        masterVolume = PlayerPrefs.GetFloat("MasterVol", 1f);
+        bgmVolume = PlayerPrefs.GetFloat("BgmVol", 0.5f);
+        sfxVolume = PlayerPrefs.GetFloat("SfxVol", 0.7f);
+        UpdateBGMVolume();
     }
 }
