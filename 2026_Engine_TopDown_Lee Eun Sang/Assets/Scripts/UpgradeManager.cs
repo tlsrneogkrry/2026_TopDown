@@ -20,7 +20,7 @@ public class UpgradeManager : MonoBehaviour
 
     private const int HEALTH_BASE_COST = 100;   // 체력 기본 비용 (1강 100, 2강 200...)
     private const int ATTACK_BASE_COST = 150;   // 공격력 기본 비용
-    private const int ATTACK_COUNT_BASE_COST = 200; // 공격횟수 기본 비용
+    private const int ATTACK_COUNT_BASE_COST = 250; // 공격횟수 기본 비용
 
     private const int HEALTH_BONUS_PER_LEVEL = 20; // 강화당 체력 +20
     private const int ATTACK_BONUS_PER_LEVEL = 10;  // 강화당 공격력 +10
@@ -126,6 +126,11 @@ public class UpgradeManager : MonoBehaviour
         GameDataManager.Instance.SaveGameData();
         return true;
     }
+
+    // ★ OnClick()용 void 래퍼 함수 (버튼에 연결하세요)
+    public void OnUpgradeHealthClicked() { UpgradeHealth(); }
+    public void OnUpgradeAttackClicked() { UpgradeAttack(); }
+    public void OnUpgradeAttackCountClicked() { UpgradeAttackCount(); }
 
     // ★ 강화 수치를 적용한 최종 기본 스탯 반환
     public int GetBaseHealth()

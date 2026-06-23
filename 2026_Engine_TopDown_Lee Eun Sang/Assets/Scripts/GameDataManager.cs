@@ -14,12 +14,12 @@ public class PlayerData
 
     public int level = 1;
     public int currentExp = 0;
-    public int maxExp = 100;
+    public int maxExp = 30;
 
     public int currentHealth = 100;
     public int maxHealth = 100;
 
-    public float attackDamage = 10f;
+    public float attackDamage = 50f;
     public float attackCooldown = 1f;
 
     public float totalPlayTime = 0f;
